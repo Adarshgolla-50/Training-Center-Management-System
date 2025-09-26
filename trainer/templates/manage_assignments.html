@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Manage Assignments</h2>
+
+    <a href="{{ url_for('trainer.topics') }}" class="btn btn-secondary mb-3">
+        Back to Topics
+    </a>
+
+    {% if assignments %}
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Title</th>
+                    <th>Course</th>
+                    <th>Topic</th>
+                    <th>Batch</th>
+                    <th>Due Date</th>
+                    <th>Created On</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in assignments %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ a.title }}</td>
+                    <td>{{ a.course_name }}</td>
+                    <td>{{ a.topic_name }}</td>
+                    <td>{{ a.batch_name }}</td>
+                    <td>{{ a.due_date }}</td>
+                    <td>{{ a.created_on.strftime('%Y-%m-%d') }}</td>
+                    <td>
+                        <a href="{{ url_for('trainer.edit_assignment', assignment_id=a.assignment_id) }}" 
+                           class="btn btn-sm btn-warning mb-1">
+                           <i class="mdi mdi-pencil"></i> Edit
+                        </a>
+
+                        <form action="{{ url_for('trainer.delete_assignment', assignment_id=a.assignment_id) }}" 
+                              method="POST" style="display:inline-block;">
+                            <button type="submit" class="btn btn-sm btn-danger mb-1" 
+                                    onclick="return confirm('Are you sure to delete this assignment?')">
+                                <i class="mdi mdi-delete"></i> Delete
+                            </button>
+                        </form>
+
+                        <a href="{{ url_for('trainer.view_assignment_submissions', assignment_id=a.assignment_id) }}" 
+                           class="btn btn-sm btn-info mb-1">
+                           <i class="mdi mdi-eye"></i> Submissions
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+        <div class="alert alert-info">
+            No assignments found.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

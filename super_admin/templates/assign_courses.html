@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <!-- Admin Assignments -->
+        <div class="col-md-6">
+            <h3>Admin Assignments</h3>
+            <div class="card mt-3 shadow-sm">
+                <div class="card-body">
+                    <table class="table table-bordered" id="adminAssignmentsTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="fw-bold">Admin</th>
+                                <th class="fw-bold">Assigned Courses</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminAssignmentsBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trainer Assignments -->
+        <div class="col-md-6">
+            <h3>Trainer Assignments</h3>
+            <div class="card mt-3 shadow-sm">
+                <div class="card-body">
+                    <table class="table table-bordered" id="trainerAssignmentsTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="fw-bold">Trainer</th>
+                                <th class="fw-bold">Assigned Courses</th>
+                            </tr>
+                        </thead>
+                        <tbody id="trainerAssignmentsBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Group by user (admin or trainer)
+function groupByUser(assignments, nameKey) {
+    const grouped = {};
+    assignments.forEach(row => {
+        const name = row[nameKey] || "Unassigned";
+        if (!grouped[name]) grouped[name] = [];
+        if (row.course_name) grouped[name].push(row.course_name);
+    });
+    return grouped;
+}
+
+// Update table
+function updateAssignmentsTable(assignments, tbodyId, nameKey) {
+    const tbody = document.getElementById(tbodyId);
+    tbody.innerHTML = '';
+
+    const grouped = groupByUser(assignments, nameKey);
+    Object.keys(grouped).forEach(name => {
+        const courses = grouped[name];
+        tbody.innerHTML += `
+            <tr>
+                <td>${name}</td>
+                <td>${courses.length ? courses.join(", ") : "<i>No courses assigned</i>"}</td>
+            </tr>
+        `;
+    });
+}
+
+fetch("{{ url_for('super_admin.get_all_assignments_ajax') }}")
+    .then(resp => resp.json())
+    .then(data => {
+        if (data.status === "success") {
+            // Admin table
+            updateAssignmentsTable(data.admins, 'adminAssignmentsBody', 'admin_name');
+            // Trainer table
+            updateAssignmentsTable(data.trainers, 'trainerAssignmentsBody', 'trainer_name');
+        } else {
+            console.error("Error loading assignments:", data.message);
+        }
+    })
+    .catch(err => console.error("Error fetching assignments:", err));
+</script>
+{% endblock %}

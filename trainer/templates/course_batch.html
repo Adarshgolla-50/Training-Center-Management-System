@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{{ url_for('trainer.my_courses') }}">My Courses</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ course.course_name }}</li>
+    </ol>
+    <h2 class="mb-4">Batches for {{ course.course_name }}</h2>
+
+    {% if batches %}
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for batch in batches %}
+            <div class="col">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ batch.batch_name }}</h5>
+                        <p class="card-text">
+                            <strong>Start:</strong> {{ batch.start_date }} <br>
+                            <strong>End:</strong> {{ batch.end_date }} <br>
+                            <strong>Status:</strong> {{ batch.status }}
+                        </p>
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="{{ url_for('trainer.course_topics', course_id=course.course_id, batch_id=batch.batch_id) }}" 
+                           class="btn btn-primary btn-sm">
+                            Manage Topics
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            No batches found for this course.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* Card hover effect */
+    .card {
+        transition: all 0.3s ease-in-out;
+        border-radius: 12px;
+        min-height: 150px;
+    }
+
+    .card:hover {
+        transform: translateY(-6px) scale(1.02);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15) !important;
+        cursor: pointer;
+    }
+
+    /* Icon hover highlight */
+    .card i {
+        transition: transform 0.3s ease, color 0.3s ease;
+    }
+
+    .card:hover i {
+        transform: scale(1.2);
+        color: #007bff !important;
+    }
+
+    /* Chart cards same height fix */
+    .card.h-100 {
+        min-height: 320px;
+    }
+</style>
+
+<!-- Welcome Section -->
+{% if session.get('is_password_changed', 0) == 0 %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <strong>Important!</strong> You need to change your password for security reasons.
+            <a href="{{ url_for('auth.change_password') }}" class="alert-link">Change Password Now</a>.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+{% endif %}
+<div class="row">
+    <div class="col-md-12 grid-margin">
+        <div class="row align-items-center">
+            <div class="col-12 col-xl-8 mb-4 mb-xl-0">
+                <h3 class="font-weight-bold">Welcome, {{ session.get('user_name') | capitalize }}!</h3>
+                <h6 class="font-weight-normal mb-0">
+                    All systems are running smoothly! You have 
+                    <span class="text-primary">{{ pending_leaves }} pending leave requests.</span>
+                </h6>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row mt-3">
+    <div class="col-md-3 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <p class="card-title">Total Students</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3>{{ total_students }}</h3>
+                    <i class="mdi mdi-account-group icon-md text-primary"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <p class="card-title">Active Batches</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3>{{ active_batches }}</h3>
+                    <i class="mdi mdi-account-card-details icon-md text-primary"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <p class="card-title">Total Courses</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3>{{ total_courses }}</h3>
+                    <i class="mdi mdi-book-open-page-variant icon-md text-primary"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <p class="card-title">Pending Leave Requests</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3>{{ pending_leaves }}</h3>
+                    <i class="mdi mdi-calendar-remove icon-md text-primary"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row mt-4">
+    <div class="col-lg-6 grid-margin stretch-card">
+        <div class="card h-100">
+            <div class="card-body" style="height:320px;">
+                <h4 class="card-title">Attendance Overview</h4>
+                <canvas id="attendanceChart" style="max-height:250px;"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6 grid-margin stretch-card">
+        <div class="card h-100">
+            <div class="card-body" style="height:320px;">
+                <h4 class="card-title">Course-wise Enrollment</h4>
+                <canvas id="enrollmentChart" style="max-height:250px;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Monthly Enrollments and Leave Applications Trend -->
+<div class="row mt-4">
+    <!-- Monthly Enrollments Trend -->
+    <div class="col-lg-6 grid-margin stretch-card">
+        <div class="card h-100">
+            <div class="card-body" style="height:320px;">
+                <h4 class="card-title">Monthly Enrollments Trend (Last 6 Months)</h4>
+                <canvas id="enrollmentsTrendChart" style="max-height:250px;"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leave Applications Trend -->
+    <div class="col-lg-6 grid-margin stretch-card">
+        <div class="card h-100">
+            <div class="card-body" style="height:320px;">
+                <h4 class="card-title">Leave Applications Trend (Last 6 Months)</h4>
+                <canvas id="leaveTrendChart" style="max-height:250px;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activities -->
+<!-- <div class="row mt-4">
+    <div class="col-lg-12 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Recent Activities</h4>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>User</th>
+                                <th>Action</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for activity in recent_activities %}
+                            <tr>
+                                <td>{{ activity.timestamp }}</td>
+                                <td>{{ activity.user }}</td>
+                                <td>{{ activity.action }}</td>
+                                <td>{{ activity.details }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center">No recent activity found.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> -->
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Attendance Chart
+    new Chart(document.getElementById('attendanceChart'), {
+        type: 'line',
+        data: {
+            labels: {{ attendance_data | map(attribute='month') | list | tojson }},
+            datasets: [
+                {
+                    label: 'Present',
+                    data: {{ attendance_data | map(attribute='present_count') | list | tojson }},
+                    borderColor: 'green',
+                    fill: false
+                },
+                {
+                    label: 'Absent',
+                    data: {{ attendance_data | map(attribute='absent_count') | list | tojson }},
+                    borderColor: 'red',
+                    fill: false
+                }
+            ]
+        },
+        options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom' } } }
+    });
+
+    // Enrollment Chart
+    new Chart(document.getElementById('enrollmentChart'), {
+        type: 'bar',
+        data: {
+            labels: {{ enrollment_data | map(attribute='course_name') | list | tojson }},
+            datasets: [{
+                label: 'Students',
+                data: {{ enrollment_data | map(attribute='student_count') | list | tojson }},
+                backgroundColor: '#42A5F5'
+            }]
+        },
+        options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, stepSize:1 } } }
+    });
+
+    // Enrollments Trend Chart
+    new Chart(document.getElementById('enrollmentsTrendChart'), {
+        type: 'line',
+        data: {
+            labels: {{ monthly_labels|tojson }},
+            datasets: [{
+                label: 'Enrollments',
+                data: {{ monthly_counts|tojson }},
+                borderColor: '#007bff',
+                fill: false
+            }]
+        },
+        options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom' } } }
+    });
+
+    // Leave Applications Trend Chart
+    new Chart(document.getElementById('leaveTrendChart'), {
+        type: 'line',
+        data: {
+            labels: {{ leave_months|tojson }},
+            datasets: [
+                {
+                    label: 'Approved',
+                    data: {{ leave_approved|tojson }},
+                    borderColor: '#4CAF50',
+                    fill: false
+                },
+                {
+                    label: 'Rejected',
+                    data: {{ leave_rejected|tojson }},
+                    borderColor: '#F44336',
+                    fill: false
+                }
+            ]
+        },
+        options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom' } } }
+    });
+</script>
+{% endblock %}

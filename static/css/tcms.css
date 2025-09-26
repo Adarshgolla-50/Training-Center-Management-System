@@ -1,0 +1,103 @@
+/* Reset */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Roboto', sans-serif; }
+
+        body {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: whitesmoke;
+        }
+
+        .login-card {
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            width: 100%;
+            max-width: 400px;
+            padding: 40px 35px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .login-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .brand-logo h1 {
+            color: #1976d2;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .brand-logo p {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-control:focus {
+            border-color: #1976d2;
+            outline: none;
+            box-shadow: 0 0 8px rgba(25, 118, 210, 0.2);
+        }
+
+        .btn-login {
+            width: 100%;
+            background: #1976d2;
+            color: #fff;
+            border: none;
+            padding: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+        }
+
+        .btn-login:hover {
+            background: #1565c0;
+            transform: translateY(-2px);
+        }
+
+        .auth-link {
+            display: block;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #1976d2;
+            text-decoration: none;
+        }
+
+        .auth-link:hover {
+            text-decoration: underline;
+        }
+
+        #message {
+            margin-top: 15px;
+            font-size: 0.95rem;
+        }
+
+        /* Responsive */
+        @media(max-width: 480px) {
+            .login-card { padding: 30px 20px; }
+        }

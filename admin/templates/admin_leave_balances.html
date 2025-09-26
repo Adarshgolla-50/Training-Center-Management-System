@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h3 class="mb-4 text-center">Student Leave Balances (Batch-wise)</h3>
+
+  {% if balances %}
+    {% set batches = {} %}
+    {% for b in balances %}
+      {% if b.batch_name not in batches %}
+        {% set _ = batches.update({b.batch_name: []}) %}
+      {% endif %}
+      {% set _ = batches[b.batch_name].append(b) %}
+    {% endfor %}
+
+    {% for batch_name, students in batches.items() %}
+    <div class="mb-5">
+      <h4 class="mb-3 text-dark">Batch: {{ batch_name }}</h4>
+      <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-2">
+
+        {% set grouped = {} %}
+        {% for s in students %}
+          {% if s.student_name not in grouped %}
+            {% set _ = grouped.update({s.student_name: []}) %}
+          {% endif %}
+          {% set _ = grouped[s.student_name].append(s) %}
+        {% endfor %}
+
+        {% for student_name, leaves in grouped.items() %}
+        <div class="col">
+          <div class="card shadow-sm h-100">
+            <div class="card-header bg-primary text-white fw-bold">
+              👨‍🎓 {{ student_name }}
+            </div>
+            <div class="card-body">
+              <ul class="list-group list-group-flush">
+                {% for leave in leaves %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <span>{{ leave.type_name }}</span>
+                  {% if leave.type_name == 'Personal Leave' %}
+                    {% set taken = leave.used_days %}
+                    {% set pending = leave.pending_days %}
+                    {% set remaining = leave.available_days - taken - pending %}
+                    <span class="badge 
+                        {% if remaining <= 0 %} bg-danger 
+                        {% elif remaining <= 2 %} bg-warning 
+                        {% else %} bg-success 
+                        {% endif %} text-dark">
+                      Taken: {{ taken }} | Pending: {{ pending }} | Remaining: {{ remaining if remaining >= 0 else 0 }}
+                    </span>
+                  {% else %}
+                    {% set taken = leave.used_days %}
+                    <span class="badge bg-info text-dark">Taken: {{ taken }}</span>
+                  {% endif %}
+                </li>
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+
+      </div>
+    </div>
+    {% endfor %}
+
+  {% else %}
+    <div class="alert alert-info text-center">No leave balances found.</div>
+  {% endif %}
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

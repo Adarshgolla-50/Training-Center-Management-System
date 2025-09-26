@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h3 class="mb-4">Leave History</h3>
+
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>Student</th>
+                    <th>Leave Type</th>
+                    <th>Reason</th>
+                    <th>From</th>                    
+                    <th>Status</th>
+                    <th>Reviewed By</th>                    
+                    <th>Comments</th>
+                    
+                </tr>
+            </thead>
+            <tbody>
+                {% for leave in leaves %}
+                <tr>
+                    <td>{{ leave.student_name }}</td>
+                    <td>{{ leave.type_name }}</td>
+                    <td>{{ leave.reason }}</td>
+                    <td>{{ leave.start_date }}</td>                    
+                    <td>{{ leave.status|capitalize }}</td>
+                    <td>
+                        {% if leave.reviewed_by_name %}
+                            {{ leave.reviewed_by_name }}
+                        {% else %}
+                            Not Reviewed
+                        {% endif %}
+                    </td>                    
+                    <td>{{ leave.admin_comments if leave.admin_comments else "—" }}</td>
+                    
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

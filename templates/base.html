@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>TCMS Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendors/feather/feather.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendors/mdi/css/materialdesignicons.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/vertical-layout-light/style.css') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/favicon.png') }}">
+</head>
+<style>
+    .sidebar .nav-link {
+        cursor: pointer;
+        transition: background 0.2s, color 0.2s;
+    }
+
+    .sidebar .nav-link:hover,
+    .sidebar .nav-link.active {
+        background: #dadcdf;
+        color: #1e1e9a !important;
+        text-decoration: none;
+        font-weight: 900 !important;
+        font-size: 1.05em;
+        /* slightly larger */
+
+    }
+
+    /* Sidebar icons */
+    /* .sidebar .nav-link i.menu-icon {
+    margin-right: 10px;
+    font-size: 1.3em;
+    color: #3d3de8 !important;
+    transition: color 0.2s, transform 0.2s;
+}   */
+    .sidebar .nav-link:hover,
+    .sidebar .nav-link.active {
+        background: #e9ecef;
+        color: #007bff;
+    }
+
+    /* Make profile images slightly bigger */
+    .img-xs {
+        width: 40px;
+        height: 40px;
+        object-fit: cover;
+    }
+
+    .img-sm {
+        width: 48px;
+        height: 48px;
+        object-fit: cover;
+    }
+</style>
+
+<body>
+    <div class="container-scroller">
+        <nav class="navbar default-layout col-lg-12 col-12 p-0 fixed-top d-flex align-items-top flex-row">
+            <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-start">
+                <div class="me-3">
+                    <button class="navbar-toggler align-self-center" type="button" data-bs-toggle="minimize">
+                        <span class="icon-menu"></span>
+                    </button>
+                </div>
+                <div>
+                    <a class="navbar-brand brand-logo"
+                        href="{% if session.get('user_role') == 'super_admin' %}{{ url_for('super_admin.dashboard') }}{% elif session.get('user_role') == 'admin' %}{{ url_for('admin.admin_dashboard') }}{% elif session.get('user_role') == 'trainer' %}{{ url_for('trainer.trainer_dashboard') }}{% elif session.get('user_role') == 'student' %}{{ url_for('student.dashboard') }}{% else %}/{% endif %}">
+                        <img src="{{ url_for('static', filename='images/Mitraz-logo.png') }}" alt="logo" />
+                    </a>
+                    <a class="navbar-brand brand-logo-mini"
+                        href="{% if session.get('user_role') == 'super_admin' %}{{ url_for('super_admin.dashboard') }}{% elif session.get('user_role') == 'admin' %}{{ url_for('admin.admin_dashboard') }}{% elif session.get('user_role') == 'trainer' %}{{ url_for('trainer.trainer_dashboard') }}{% elif session.get('user_role') == 'student' %}{{ url_for('student.dashboard') }}{% else %}/{% endif %}">
+                        <img src="{{ url_for('static', filename='images/Mitraz-logo.png') }}" alt="logo" />
+                    </a>
+                </div>
+            </div>
+            <div class="navbar-menu-wrapper d-flex align-items-top">
+                <ul class="navbar-nav">
+                    <li class="nav-item font-weight-semibold d-none d-lg-block ms-0">
+                        <h1 class="welcome-text">Training Center Management System</h1>
+                    </li>
+                </ul>
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <form class="search-form" action="javascript:void(0);">
+                            <i class="icon-search"></i>
+                            <input type="search" class="form-control" id="globalSearch" placeholder="Search Here"
+                                title="Search here">
+                        </form>
+
+                    </li>
+                    <!-- <li class="nav-item dropdown">
+                        <a class="nav-link count-indicator" id="notificationDropdown" href="#"
+                            data-bs-toggle="dropdown">
+                            <i class="icon-mail icon-lg"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right navbar-dropdown preview-list pb-0"
+                            aria-labelledby="notificationDropdown">
+                            <a class="dropdown-item py-3">
+                                <p class="mb-0 font-weight-medium float-left">You have 4 new notifications</p>
+                                <button class="badge badge-pill badge-primary float-right" type="button">View
+                                    all</button>
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item preview-item">
+                                <div class="preview-thumbnail">
+                                    <i class="mdi mdi-alert text-primary"></i>
+                                </div>
+                                <div class="preview-item-content flex-grow py-2">
+                                    <p class="preview-subject ellipsis font-weight-medium text-dark">Application Error
+                                    </p>
+                                    <p class="fw-light small-text mb-0">Just now</p>
+                                </div>
+                            </a>
+                        </div>
+                    </li> -->
+                    <li class="nav-item dropdown user-dropdown">
+                        <a class="nav-link" id="UserDropdown" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+                            {% if session.get('profile_image') %}
+                            <img class="img-xs rounded-circle"
+                                src="{{ url_for('static', filename='uploads/profiles/' ~ session.get('profile_image')) }}"
+                                alt="Profile image">
+                            {% else %}
+                            <img class="img-xs rounded-circle"
+                                src="{{ url_for('static', filename='images/faces/face8.jpg') }}" alt="Profile image">
+                            {% endif %}
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right navbar-dropdown" aria-labelledby="UserDropdown">
+                            <div class="dropdown-header text-center">
+                                {% if session.get('profile_image') %}
+                                <img class="img-sm rounded-circle"
+                                    src="{{ url_for('static', filename='uploads/profiles/' ~ session.get('profile_image')) }}"
+                                    alt="Profile image">
+                                {% else %}
+                                <img class="img-sm rounded-circle"
+                                    src="{{ url_for('static', filename='images/faces/face8.jpg') }}"
+                                    alt="Profile image">
+                                {% endif %}
+                                <p class="mb-1 mt-3 font-weight-semibold">
+                                    {{ session.get('user_name', 'User') }}
+                                </p>
+                                <p class="fw-light text-muted mb-0">
+                                    {{ session.get('user_email', 'user@tcms.com') }}
+                                </p>
+                            </div>
+
+                            {% if session.get('user_role') == 'student' %}
+                            <!-- <a class="dropdown-item" href="{{ url_for('student.profile') }}">
+                                <i class="dropdown-item-icon mdi mdi-account-outline text-primary me-2"></i> My Profile
+                            </a>
+                            <a class="dropdown-item" href="{{ url_for('student.profile') }}">
+                                <i class="dropdown-item-icon mdi mdi-account-outline text-primary me-2"></i> Update
+                                Profile
+                            </a> -->
+                            <a class="dropdown-item" href="{{ url_for('auth.change_password') }}">
+                                <i class="dropdown-item-icon mdi mdi-lock-outline text-primary me-2"></i> Change
+                                Password
+                            </a>
+
+                            {% elif session.get('user_role') == 'trainer' %}
+                            <!-- <a class="dropdown-item" href="{{ url_for('trainer.profile') }}">
+                                <i class="dropdown-item-icon mdi mdi-account-outline text-primary me-2"></i> My Profile
+                            </a>
+                            <a class="dropdown-item" href="{{ url_for('trainer.profile') }}">
+                                <i class="dropdown-item-icon mdi mdi-account-outline text-primary me-2"></i> Update
+                                Profile
+                            </a> -->
+                            <a class="dropdown-item" href="{{ url_for('auth.change_password') }}">
+                                <i class="dropdown-item-icon mdi mdi-lock-outline text-primary me-2"></i> Change
+                                Password
+                            </a>
+
+                            {% elif session.get('user_role') == 'admin' %}
+                            <!-- <a class="dropdown-item" href="{{ url_for('admin.profile') }}">
+                                <i class="dropdown-item-icon mdi mdi-account-outline text-primary me-2"></i> My Profile
+                            </a>
+                            <a class="dropdown-item" href="{{ url_for('admin.profile') }}">
+                                <i class="dropdown-item-icon mdi mdi-account-outline text-primary me-2"></i> Update
+                                Profile
+                            </a> -->
+                            <a class="dropdown-item" href="{{ url_for('auth.change_password') }}">
+                                <i class="dropdown-item-icon mdi mdi-lock-outline text-primary me-2"></i> Change
+                                Password
+                            </a>
+
+                            {% endif %}
+
+                            <a class="dropdown-item" href="{{ url_for('auth.logout') }}">
+                                <i class="dropdown-item-icon mdi mdi-power text-primary me-2"></i> Sign Out
+                            </a>
+                        </div>
+                    </li>
+
+                </ul>
+                <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button"
+                    data-bs-toggle="offcanvas">
+                    <span class="mdi mdi-menu"></span>
+                </button>
+            </div>
+        </nav>
+        <div class="container-fluid page-body-wrapper">
+            <nav class="sidebar sidebar-offcanvas" id="sidebar">
+                <ul class="nav">
+                    {# SUPER ADMIN SECTION #}
+                    {% if session.get('user_role') == 'super_admin' %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'super_admin.dashboard' %}active{% endif %}"
+                            href="{{ url_for('super_admin.dashboard') }}">
+                            <i class="mdi mdi-shield-account menu-icon"></i>
+                            <span class="menu-title">Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint in ['super_admin.add_course', 'super_admin.courses'] %}active{% endif %}"
+                            data-bs-toggle="collapse" href="#coursesMenu" role="button"
+                            aria-expanded="{% if request.endpoint in ['super_admin.add_course', 'super_admin.courses'] %}true{% else %}false{% endif %}"
+                            aria-controls="coursesMenu">
+                            <i class="mdi mdi-account-key menu-icon"></i>
+                            <span class="menu-title">Courses</span>
+                            <i class="menu-arrow"></i>
+                        </a>
+                        <div class="collapse {% if request.endpoint in ['super_admin.add_course', 'super_admin.courses'] %}show{% endif %}"
+                            id="coursesMenu">
+                            <ul class="nav flex-column sub-menu">
+                                <li class="nav-item">
+                                    <a class="nav-link {% if request.endpoint == 'super_admin.add_course' %}active{% endif %}"
+                                        href="{{ url_for('super_admin.add_course') }}">
+                                        Add Course
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {% if request.endpoint == 'super_admin.courses' %}active{% endif %}"
+                                        href="{{ url_for('super_admin.courses') }}">
+                                        Manage Courses
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+
+                    <!-- Admins Menu -->
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint in [
+        'super_admin.add_admin', 
+        'super_admin.admins',         
+    ] %}active{% endif %}" data-bs-toggle="collapse" href="#adminsMenu" role="button" aria-expanded="{% if request.endpoint in [
+        'super_admin.add_admin', 
+        'super_admin.admins', 
+        
+    ] %}true{% else %}false{% endif %}" aria-controls="adminsMenu">
+                            <i class="mdi mdi-account-key menu-icon"></i>
+                            <span class="menu-title">Admins</span>
+                            <i class="menu-arrow"></i>
+                        </a>
+                        <div class="collapse {% if request.endpoint in [
+        'super_admin.add_admin', 
+        'super_admin.admins',         
+    ] %}show{% endif %}" id="adminsMenu">
+                            <ul class="nav flex-column sub-menu">
+                                <li class="nav-item">
+                                    <a class="nav-link {% if request.endpoint == 'super_admin.add_admin' %}active{% endif %}"
+                                        href="{{ url_for('super_admin.add_admin') }}">
+                                        Add Admin
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {% if request.endpoint == 'super_admin.admins' %}active{% endif %}"
+                                        href="{{ url_for('super_admin.admins') }}">
+                                        Manage Admins
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    <!-- Trainers Menu -->
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint in [
+        'super_admin.add_trainer', 
+        'super_admin.trainers',        
+    ] %}active{% endif %}" data-bs-toggle="collapse" href="#trainersMenu" role="button" aria-expanded="{% if request.endpoint in [
+        'super_admin.add_trainer', 
+        'super_admin.trainers',        
+    ] %}true{% else %}false{% endif %}" aria-controls="trainersMenu">
+                            <i class="mdi mdi-account-tie menu-icon"></i>
+                            <span class="menu-title">Trainers</span>
+                            <i class="menu-arrow"></i>
+                        </a>
+                        <div class="collapse {% if request.endpoint in [
+        'super_admin.add_trainer', 
+        'super_admin.trainers',        
+    ] %}show{% endif %}" id="trainersMenu">
+                            <ul class="nav flex-column sub-menu">
+                                <li class="nav-item">
+                                    <a class="nav-link {% if request.endpoint == 'super_admin.add_trainer' %}active{% endif %}"
+                                        href="{{ url_for('super_admin.add_trainer') }}">
+                                        Add Trainer
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {% if request.endpoint == 'super_admin.trainers' %}active{% endif %}"
+                                        href="{{ url_for('super_admin.trainers') }}">
+                                        Manage Trainers
+                                    </a>
+                                </li>
+
+                            </ul>
+                        </div>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'super_admin.assign_courses_page' %}active{% endif %}"
+                            href="{{ url_for('super_admin.assign_courses_page') }}">
+                            <i class="mdi mdi-book-multiple menu-icon"></i>
+                            <span class="menu-title">Course Assignments</span>
+                        </a>
+                    </li>
+                    </li>
+
+
+                    {% elif session.get('user_role') == 'admin' %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.admin_dashboard') }}">
+                            <i class="mdi mdi-grid-large menu-icon"></i><span class="menu-title">Admin Dashboard</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="collapse" href="#batchMenu" role="button"
+                            aria-expanded="{% if request.endpoint in ['admin.add_batch', 'admin.batches'] %}true{% else %}false{% endif %}"
+                            aria-controls="batchMenu">
+                            <i class="mdi mdi-book-open-page-variant menu-icon"></i>
+                            <span class="menu-title">Batch Management</span>
+                            <i class="mdi mdi-chevron-down"></i>
+                        </a>
+                        <div class="collapse {% if request.endpoint in ['admin.add_batch', 'admin.batches'] %}show{% endif %}"
+                            id="batchMenu">
+                            <ul class="nav flex-column sub-menu">
+                                <li class="nav-item">
+                                    <a class="nav-link {% if request.endpoint == 'admin.add_batch' %}active{% endif %}"
+                                        href="{{ url_for('admin.add_batch') }}">
+                                        Add Batch
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {% if request.endpoint == 'admin.batches' %}active{% endif %}"
+                                        href="{{url_for('admin.batches') }}">
+                                        Manage Batches
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint in [
+            'admin.add_student',
+            'admin.show_add_student',
+            'admin.students',
+            'admin.assign_student_to_batch'
+        ] %}active{% endif %}" data-bs-toggle="collapse" href="#studentMenu" role="button" aria-expanded="{% if request.endpoint in [
+            'admin.add_student',
+            'admin.show_add_student',
+            'admin.students',
+            'admin.assign_student_to_batch'
+        ] %}true{% else %}false{% endif %}" aria-controls="studentMenu">
+                            <i class="mdi mdi-account-group menu-icon"></i>
+                            <span class="menu-title">Student Management</span>
+                            <i class="mdi mdi-chevron-down"></i>
+                        </a>
+                        <div class="collapse {% if request.endpoint in [
+            'admin.add_student',
+            'admin.show_add_student',
+            'admin.students',
+            'admin.assign_student_to_batch'
+        ] %}show{% endif %}" id="studentMenu">
+                            <ul class="nav flex-column sub-menu">
+                                <li class="nav-item">
+                                    <a class="nav-link {% if request.endpoint == 'admin.courses' %}active{% endif %}"
+                                        href="{{ url_for('admin.courses') }}">
+                                        <span class="menu-title">Courses</span>
+                                    </a>
+                                </li>
+                                {% if request.endpoint in ['admin.add_student', 'admin.show_add_student'] %}
+                                <li class="nav-item">
+                                    <a class="nav-link {% if request.endpoint == 'admin.course_batches' %}active{% endif %}"
+                                        href="{{ url_for('admin.courses') }}">
+                                        <span class="menu-title">Batches</span>
+                                    </a>
+                                </li>
+
+                                <li class="nav-item ms-3">
+                                    <a class="nav-link active" href="#">
+                                        <span class="menu-title">Add Student</span>
+                                    </a>
+                                </li>
+                                {% endif %}
+                                <li class="nav-item">
+                                    <a class="nav-link {% if request.endpoint == 'admin.students' %}active{% endif %}"
+                                        href="{{ url_for('admin.students') }}">
+                                        Manage Students
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint in [
+            'admin.mark_attendance_page',
+            'admin.attendance_report',
+            'admin.export_attendance_csv',
+            'admin.export_attendance_pdf',
+            'admin.student_attendance_history'
+        ] %}active{% endif %}" data-bs-toggle="collapse" href="#attendanceMenu" role="button" aria-expanded="{% if request.endpoint in [
+            'admin.mark_attendance_page',
+            'admin.attendance_report',
+            'admin.export_attendance_csv',
+            'admin.export_attendance_pdf',
+            'admin.student_attendance_history'
+        ] %}true{% else %}false{% endif %}" aria-controls="attendanceMenu">
+                            <i class="mdi mdi-calendar-check menu-icon"></i>
+                            <span class="menu-title">Attendance </span>
+                            <i class="mdi mdi-chevron-down"></i>
+                        </a>
+                        <div class="collapse {% if request.endpoint in [
+            'admin.mark_attendance_page',
+            'admin.attendance_report',
+            'admin.export_attendance_csv',
+            'admin.export_attendance_pdf',
+            'admin.student_attendance_history'
+        ] %}show{% endif %}" id="attendanceMenu">
+                            <ul class="nav flex-column sub-menu">
+                                <li class="nav-item">
+                                    <a class="nav-link {% if request.endpoint == 'admin.mark_attendance_page' %}active{% endif %}"
+                                        href="{{ url_for('admin.mark_attendance_page') }}">
+                                        Mark Attendance
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {% if request.endpoint == 'admin.student_attendance_history' %}active{% endif %}"
+                                        href="{{ url_for('admin.student_attendance_history') }}">
+                                        Student History
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {% if request.endpoint == 'admin.attendance_report' %}active{% endif %}"
+                                        href="{{ url_for('admin.attendance_report') }}">
+                                        Attendance Reports
+                                    </a>
+                                </li>
+
+                            </ul>
+                        </div>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint in ['admin.leave_dashboard','admin.leave_history','admin.leave_types','admin.leave_balances'] %}active{% endif %}"
+                            data-bs-toggle="collapse" href="#leaveMenu"
+                            aria-expanded="{% if request.endpoint in ['admin.leave_dashboard','admin.leave_history','admin.leave_types','admin.leave_balances'] %}true{% else %}false{% endif %}"
+                            aria-controls="leaveMenu">
+                            <i class="mdi mdi-calendar-remove menu-icon"></i>
+                            <span class="menu-title">Leave Management</span>
+                            <i class="menu-arrow"></i>
+                        </a>
+                        <div class="collapse {% if request.endpoint in ['admin.leave_dashboard','admin.leave_history', 'admin.leave_types', 'admin.leave_balances' ] %}show{% endif %}"
+                            id="leaveMenu">
+                            <ul class="nav flex-column sub-menu">
+                                <li class="nav-item">
+                                    <a class="nav-link {% if request.endpoint == 'admin.leave_dashboard' %}active{% endif %}"
+                                        href="{{ url_for('admin.leave_dashboard') }}">
+                                        Pending Leave Applications
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {% if request.endpoint == 'admin.leave_history' %}active{% endif %}"
+                                        href="{{ url_for('admin.leave_history') }}">
+                                        Leave History
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {% if request.endpoint == 'admin.leave_types' %}active{% endif %}"
+                                        href="{{ url_for('admin.leave_types') }}">
+                                        Batch-wise Leaves
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {% if request.endpoint == 'admin.leave_balances' %}active{% endif %}"
+                                        href="{{ url_for('admin.leave_balances') }}">
+                                        Student Leave Balances
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    {% elif session.get('user_role') == 'student' %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('student.dashboard') }}">
+                            <i class="mdi mdi-grid-large menu-icon"></i><span class="menu-title">Student
+                                Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint in ['student.assignments', 'student.submit_assignment'] %}active{% endif %}"
+                            data-bs-toggle="collapse" href="#studentAssignmentsMenu" role="button"
+                            aria-expanded="{% if request.endpoint in ['student.assignments', 'student.submit_assignment'] %}true{% else %}false{% endif %}"
+                            aria-controls="studentAssignmentsMenu">
+                            <i class="mdi mdi-checkbox-marked-circle-outline menu-icon"></i>
+                            <span class="menu-title">Assignments</span>
+                            <i class="mdi mdi-chevron-down"></i>
+                        </a>
+                        <div class="collapse {% if request.endpoint in ['student.assignments', 'student.submit_assignment'] %}show{% endif %}"
+                            id="studentAssignmentsMenu">
+                            <ul class="nav flex-column sub-menu">
+                                <li class="nav-item">
+                                    <a class="nav-link {% if request.endpoint == 'student.assignments' %}active{% endif %}"
+                                        href="{{ url_for('student.assignments') }}">
+                                        My Assignments
+                                    </a>
+                                </li>
+                                <!-- <li class="nav-item">
+                                    <a class="nav-link {% if request.endpoint == 'student.submit_assignment' %}active{% endif %}"
+                                       href="#">
+                                        Submit Assignment
+                                    </a>
+                                </li> -->
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint in ['student.apply_leave', 'student.my_leaves'] %}active{% endif %}"
+                            data-bs-toggle="collapse" href="#studentLeaveMenu" role="button"
+                            aria-expanded="{% if request.endpoint in ['student.apply_leave', 'student.my_leaves'] %}true{% else %}false{% endif %}"
+                            aria-controls="studentLeaveMenu">
+                            <i class="mdi mdi-calendar-plus menu-icon"></i>
+                            <span class="menu-title">Leave Application</span>
+                            <i class="mdi mdi-chevron-down"></i>
+                        </a>
+                        <div class="collapse {% if request.endpoint in ['student.apply_leave', 'student.my_leaves'] %}show{% endif %}"
+                            id="studentLeaveMenu">
+                            <ul class="nav flex-column sub-menu">
+                                <li class="nav-item">
+                                    <a class="nav-link {% if request.endpoint == 'student.apply_leave' %}active{% endif %}"
+                                        href="{{ url_for('student.apply_leave') }}">
+                                        Apply Leave
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {% if request.endpoint == 'student.my_leaves' %}active{% endif %}"
+                                        href="{{ url_for('student.my_leaves') }}">
+                                        My Leave Applications
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+
+                    {% elif session.get('user_role') == 'trainer' %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'trainer.trainer_dashboard' %}active{% endif %}"
+                            href="{{ url_for('trainer.trainer_dashboard') }}">
+                            <i class="mdi mdi-grid-large menu-icon"></i>
+                            <span class="menu-title">Trainer Dashboard</span>
+                        </a>
+                    </li>
+
+                    <!-- Batches Menu -->
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint in [
+        'trainer.my_courses', 'trainer.course_batch', 'trainer.course_topics', 'trainer.view_assignments'
+    ] %}active{% endif %}" data-bs-toggle="collapse" href="#batchMenu" role="button" aria-expanded="{% if request.endpoint in [
+            'trainer.my_courses', 'trainer.course_batch', 'trainer.course_topics', 'trainer.view_assignments'
+        ] %}true{% else %}false{% endif %}" aria-controls="batchMenu">
+                            <i class="mdi mdi-book-open-page-variant menu-icon"></i>
+                            <span class="menu-title">Batches</span>
+                            <i class="mdi mdi-chevron-down"></i>
+                        </a>
+                        <div class="collapse {% if request.endpoint in [
+        'trainer.my_courses', 'trainer.course_batch', 'trainer.course_topics', 'trainer.view_assignments'
+    ] %}show{% endif %}" id="batchMenu">
+                            <ul class="nav flex-column sub-menu">
+                                <li class="nav-item">
+                                    <a class="nav-link {% if request.endpoint == 'trainer.my_courses' %}active{% endif %}"
+                                        href="{{ url_for('trainer.my_courses') }}">
+                                        My Courses
+                                    </a>
+                                </li>
+                                {% if request.endpoint in ['trainer.course_batch', 'trainer.course_topics',
+                                'trainer.view_assignments'] %}
+                                <!-- <li class="nav-item">
+                                    <a class="nav-link {% if request.endpoint == 'trainer.course_batch' %}active{% endif %}"
+                                        href="{{ url_for('trainer.course_batch', course_id=request.view_args.get('course_id', 0)) }}">
+                                        Course Batch
+                                    </a>
+                                </li> -->
+                                <li class="nav-item">
+                                    <a class="nav-link {% if request.endpoint == 'trainer.course_topics' %}active{% endif %}"
+                                        href="{{ url_for('trainer.course_topics', course_id=request.view_args.get('course_id', 0), batch_id=request.view_args.get('batch_id', 0)) }}">
+                                        Topics & Subtopics
+                                    </a>
+                                </li>
+                                <!-- <li class="nav-item">
+                                    <a class="nav-link"
+                                        href="#">
+                                        Assignments
+                                    </a>
+                                </li> -->
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            <div class="main-panel">
+
+                <div class="content-wrapper">
+                    {% block content %}{% endblock %}
+                </div>
+                <footer class="footer">
+                    <div class="d-sm-flex justify-content-center justify-content-sm-between">
+                        <span class="text-muted text-center text-sm-left d-block d-sm-inline-block">TCMS Project. All
+                            rights reserved.</span>
+                    </div>
+                </footer>
+            </div>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='vendors/js/vendor.bundle.base.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/off-canvas.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/hoverable-collapse.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/template.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/settings.js') }}"></script>
+    <!-- Chart.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const searchInput = document.getElementById('globalSearch');
+
+            function removeHighlights() {
+                document.querySelectorAll('.highlight').forEach(el => {
+                    const parent = el.parentNode;
+                    parent.replaceChild(document.createTextNode(el.textContent), el);
+                    parent.normalize();
+                });
+            }
+
+            function walkAndHighlight(node, filter) {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    const text = node.nodeValue;
+                    const index = text.toLowerCase().indexOf(filter);
+                    if (index > -1) {
+                        const span = document.createElement('span');
+                        span.className = 'highlight';
+                        span.textContent = text.substr(index, filter.length);
+
+                        const after = document.createTextNode(text.substr(index + filter.length));
+                        const before = document.createTextNode(text.substr(0, index));
+
+                        const parent = node.parentNode;
+                        parent.replaceChild(after, node);
+                        parent.insertBefore(span, after);
+                        parent.insertBefore(before, span);
+                    }
+                } else if (node.nodeType === Node.ELEMENT_NODE && node.nodeName !== "SCRIPT" && node.nodeName !== "STYLE" && node.nodeName !== "INPUT" && node.nodeName !== "TEXTAREA") {
+                    Array.from(node.childNodes).forEach(child => walkAndHighlight(child, filter));
+                }
+            }
+
+            searchInput.addEventListener('keyup', function () {
+                const filter = searchInput.value.toLowerCase().trim();
+                removeHighlights();
+
+                if (filter) {
+                    walkAndHighlight(document.body, filter);
+                }
+            });
+        });
+
+    </script>
+
+    <style>
+        .highlight {
+            color: #0c0c0b;
+            /* light yellow */
+            font-weight: bold;
+        }
+    </style>
+
+    {% block scripts %}
+
+    {% endblock %}
+
+</body>
+
+</html>

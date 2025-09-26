@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* Trainer card styles (matches admin cards) */
+    .trainer-card {
+        border-radius: 1rem;
+        padding: 1rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1.5rem;
+        transition: transform 0.2s, box-shadow 0.2s;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .trainer-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .trainer-card .card-header {
+        font-weight: 700;
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .trainer-card .trainer-info p {
+        margin: 0.2rem 0;
+        font-size: 0.95rem;
+    }
+
+    .trainer-card .assigned-courses {
+        margin-top: 0.5rem;
+    }
+
+    .trainer-card .assigned-courses span {
+        display: inline-block;
+        background-color: #e9ecef;
+        padding: 0.2rem 0.5rem;
+        margin: 0.2rem;
+        border-radius: 5px;
+        font-size: 0.85rem;
+    }
+
+    .trainer-card .actions {
+        margin-top: 0.8rem;
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .form-check-input:checked {
+        background-color: #28a745 !important;
+        border-color: #28a745 !important;
+    }
+
+    .form-check-input:not(:checked) {
+        background-color: #dc3545 !important;
+        border-color: #dc3545 !important;
+    }
+
+    .active-label.text-success {
+        color: #28a745;
+        font-weight: 600;
+    }
+
+    .active-label.text-danger {
+        color: #dc3545;
+        font-weight: 600;
+    }
+
+    #searchInput {
+        margin-bottom: 1.5rem;
+    }
+
+    .trainers-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+</style>
+
+<!-- Search + Add Trainer -->
+<div class="row mt-4 mb-3">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <input type="text" id="searchInput" class="form-control w-50" placeholder="Search by name..."
+            value="{{ search }}">
+        <a href="{{ url_for('super_admin.add_trainer') }}" class="btn btn-primary">Add New Trainer</a>
+    </div>
+</div>
+
+<!-- Filters + Per-page + Total -->
+<div class="row mb-3">
+    <div class="col-12 d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <div class="d-flex align-items-center gap-2">
+            <label for="perPageSelect" class="form-label mb-0">Trainers per page:</label>
+            <select id="perPageSelect" class="form-select form-select-sm d-inline-block w-auto">
+                {% for n in [5,10,20,50] %}
+                <option value="{{ n }}" {% if per_page==n %}selected{% endif %}>{{ n }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+            <label class="form-label mb-0">Status:</label>
+            <select id="statusFilter" class="form-select form-select-sm d-inline-block w-auto">
+                <option value="">All</option>
+                <option value="active" {% if selected_status=='active' %}selected{% endif %}>Active</option>
+                <option value="inactive" {% if selected_status=='inactive' %}selected{% endif %}>Inactive</option>
+            </select>
+        </div>
+
+        <div><small>Total Trainers: {{ total_trainers }}</small></div>
+    </div>
+</div>
+
+<!-- Trainers Grid -->
+<div class="trainers-grid">
+    {% if trainers %}
+    {% for trainer in trainers %}
+    <div class="trainer-card" id="trainerCard{{ trainer.user_id }}">
+        <div class="card-header">
+            <span>{{ trainer.full_name }}</span>
+            <div class="form-check form-switch d-flex align-items-center">
+                <input class="form-check-input active-toggle" type="checkbox" data-user-id="{{ trainer.user_id }}" {% if
+                    trainer.is_active %}checked{% endif %}>
+                <span class="ms-2 active-label {{ 'text-success' if trainer.is_active else 'text-danger' }}">{{ 'Active'
+                    if trainer.is_active else 'Inactive' }}</span>
+            </div>
+        </div>
+        <div class="trainer-info">
+            <p><strong>Email:</strong> {{ trainer.email }}</p>
+            <p><strong>Phone:</strong> {{ trainer.phone or '-' }}</p>
+            <p><strong>Role:</strong> Trainer</p>
+        </div>
+        <div class="assigned-courses">
+            <strong>Assigned Courses:</strong>
+            {% if trainer.courses %}
+            {% for course in trainer.courses %}
+            <span>{{ course.course_name }}</span>
+            {% endfor %}
+            {% else %}
+            <span>-</span>
+            {% endif %}
+        </div>
+        <div class="actions">
+            <button type="button" class="btn btn-sm btn-info view-trainer-btn" data-bs-toggle="modal"
+                data-bs-target="#viewTrainerModal" data-user='{{ trainer|tojson }}'>View</button>
+            <a href="{{ url_for('super_admin.edit_trainer', trainer_id=trainer.user_id) }}"
+                class="btn btn-sm btn-warning">Edit</a>
+           
+            <a href="{{ url_for('super_admin.delete_trainer', trainer_id=trainer.user_id) }}"
+                class="btn btn-sm btn-danger"
+                onclick="return confirm('Are you sure you want to delete this trainer?')">Delete</a>
+            </td>
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="text-center py-4" id="noTrainersRow">
+        <h5>No trainers found.</h5>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Pagination -->
+{% if total_pages>1 %}
+<nav aria-label="Trainers pagination" class="mt-3">
+    <ul class="pagination justify-content-center pagination-sm">
+        <li class="page-item {% if page<=1 %}disabled{% endif %}">
+            <a class="page-link" href="?page={{ page-1 }}&per_page={{ per_page }}&search={{ search }}">Previous</a>
+        </li>
+        {% for p in range(1,total_pages+1) %}
+        <li class="page-item {% if page==p %}active{% endif %}">
+            <a class="page-link" href="?page={{ p }}&per_page={{ per_page }}&search={{ search }}">{{ p }}</a>
+        </li>
+        {% endfor %}
+        <li class="page-item {% if page>=total_pages %}disabled{% endif %}">
+            <a class="page-link" href="?page={{ page+1 }}&per_page={{ per_page }}&search={{ search }}">Next</a>
+        </li>
+    </ul>
+</nav>
+{% endif %}
+
+<!-- View Trainer Modal -->
+<div class="modal fade" id="viewTrainerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">👤 Trainer Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <p class="mb-1 text-muted">ID</p>
+                        <p class="fw-semibold" id="vt-id"></p>
+                        <p class="mb-1 text-muted">Full Name</p>
+                        <p class="fw-semibold" id="vt-name"></p>
+                        <p class="mb-1 text-muted">Email</p>
+                        <p class="fw-semibold" id="vt-email"></p>
+                        <p class="mb-1 text-muted">Phone</p>
+                        <p class="fw-semibold" id="vt-phone"></p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1 text-muted">Role</p>
+                        <p class="fw-semibold">Trainer</p>
+                        <p class="mb-1 text-muted">Active</p>
+                        <p class="fw-semibold" id="vt-active"></p>
+                        <p class="mb-1 text-muted">Assigned Courses</p>
+                        <p class="fw-semibold" id="vt-courses"></p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Filters and search
+    function applyFilters() {
+        const perPage = document.getElementById('perPageSelect').value;
+        const status = document.getElementById('statusFilter').value;
+        const search = document.getElementById('searchInput').value;
+        let query = `?page=1&per_page=${perPage}&search=${search}`;
+        if (status) query += `&status=${status}`;
+        window.location.href = query;
+    }
+    document.getElementById('perPageSelect').addEventListener('change', applyFilters);
+    document.getElementById('statusFilter').addEventListener('change', applyFilters);
+    document.getElementById("searchInput").addEventListener("keyup", function (e) { if (e.key === "Enter") applyFilters(); });
+
+    // Toggle active status
+    document.querySelectorAll('.active-toggle').forEach(toggle => {
+        toggle.addEventListener('change', function () {
+            const userId = this.dataset.userId;
+            const isActive = this.checked ? 1 : 0;
+            const statusLabel = this.closest('.form-check').querySelector('.active-label');
+            fetch(`/super_admin/toggle_trainer_status/${userId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ is_active: isActive })
+            })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        statusLabel.textContent = isActive ? "Active" : "Inactive";
+                        statusLabel.classList.toggle("text-success", isActive);
+                        statusLabel.classList.toggle("text-danger", !isActive);
+                    } else { alert("Failed to update status"); this.checked = !isActive; }
+                })
+                .catch(() => { alert("Error updating status"); this.checked = !isActive; });
+        });
+    });
+
+    // View Trainer Modal
+    document.querySelectorAll('.view-trainer-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const user = JSON.parse(this.getAttribute('data-user'));
+            document.getElementById('vt-id').textContent = user.user_id ?? '-';
+            document.getElementById('vt-name').textContent = user.full_name ?? '-';
+            document.getElementById('vt-email').textContent = user.email ?? '-';
+            document.getElementById('vt-phone').textContent = user.phone ?? '-';
+            document.getElementById('vt-active').innerHTML = user.is_active
+                ? '<span class="badge bg-success">Active</span>'
+                : '<span class="badge bg-danger">Inactive</span>';
+            document.getElementById('vt-courses').textContent = user.courses && user.courses.length
+                ? user.courses.map(c => c.course_name).join(", ")
+                : '-';
+        });
+    });
+</script>
+{% endblock %}

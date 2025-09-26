@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center">
+                    
+                    <!-- Profile Photo -->
+                    <div class="mb-3">
+                        {% if student.profile_photo %}
+                            <img src="{{ url_for('static', filename='uploads/profiles/' + student.profile_photo) }}" 
+                                 class="rounded-circle border" style="width:130px;height:130px;object-fit:cover;">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='images/default_profile.png') }}" 
+                                 class="rounded-circle border" style="width:130px;height:130px;object-fit:cover;">
+                        {% endif %}
+                    </div>
+
+                    <!-- Name & Email -->
+                    <h4 class="card-title mb-1">{{ student.full_name or 'N/A' }}</h4>
+                    <p class="text-muted mb-2">{{ student.email or 'N/A' }}</p>
+                    <p class="text-muted mb-3">{{ student.phone or 'N/A' }}</p>
+
+                    <!-- Profile Completion Bar -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Profile Completion: {{ completion }}%</label>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ completion }}%;" 
+                                 aria-valuenow="{{ completion }}" aria-valuemin="0" aria-valuemax="100">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Student Info -->
+                    <div class="row text-start g-3">
+                        <div class="col-md-6">
+                            <strong>Date of Birth:</strong>
+                            <p>{{ student.dob or 'N/A' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Guardian Name:</strong>
+                            <p>{{ student.guardian_name or 'N/A' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Blood Group:</strong>
+                            <p>{{ student.blood_group or 'N/A' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Country:</strong>
+                            <p>{{ student.country or 'N/A' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>State:</strong>
+                            <p>{{ student.state or 'N/A' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>City:</strong>
+                            <p>{{ student.city or 'N/A' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Zip Code:</strong>
+                            <p>{{ student.zip_code or 'N/A' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Emergency Contact Name:</strong>
+                            <p>{{ student.emergency_contact_name or 'N/A' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Emergency Contact Phone:</strong>
+                            <p>{{ student.emergency_contact_phone or 'N/A' }}</p>
+                        </div>
+                        <div class="col-12">
+                            <strong>Address:</strong>
+                            <p>{{ student.address or 'N/A' }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="mt-4 d-flex justify-content-center gap-2">
+                        <a href="{{ url_for('student.profile') }}" class="btn btn-primary px-4">Edit Profile</a>
+                        <a href="{{ url_for('student.student_dashboard') }}" class="btn btn-outline-secondary px-4">Back to Dashboard</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border-radius: 15px;
+    }
+    .card-body p {
+        margin: 0;
+        color: #555;
+    }
+</style>
+{% endblock %}

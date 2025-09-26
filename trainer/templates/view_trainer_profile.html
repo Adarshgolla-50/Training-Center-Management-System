@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5" style="max-width: 900px;">
+
+    <!-- Profile Header -->
+    <div class="text-center mb-4">
+        {% if trainer.profile_photo %}
+            <img src="{{ url_for('static', filename='uploads/profiles/' + trainer.profile_photo) }}" 
+                 alt="Profile Photo" class="rounded-circle mb-3" style="width:150px;height:150px;object-fit:cover;">
+        {% else %}
+            <img src="{{ url_for('static', filename='images/default_profile.png') }}" 
+                 alt="Profile Photo" class="rounded-circle mb-3" style="width:150px;height:150px;">
+        {% endif %}
+        <h3 class="fw-bold">{{ trainer.full_name or 'N/A' }}</h3>
+        <p class="text-muted">{{ trainer.specialization or 'Specialization not provided' }}</p>
+    </div>
+
+    <!-- Profile Completion -->
+    <div class="mb-4">
+        <label class="form-label fw-bold">Profile Completion: {{ completion }}%</label>
+        <div class="progress">
+            <div class="progress-bar" role="progressbar" style="width: {{ completion }}%;" 
+                 aria-valuenow="{{ completion }}" aria-valuemin="0" aria-valuemax="100">
+                {{ completion }}%
+            </div>
+        </div>
+    </div>
+
+    <!-- Basic Info Card -->
+    <div class="card mb-3 shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title">Basic Information</h5>
+            <div class="row">
+                <div class="col-md-6"><strong>Email:</strong> {{ trainer.email or 'N/A' }}</div>
+                <div class="col-md-6"><strong>Phone:</strong> {{ trainer.phone or 'N/A' }}</div>
+                <div class="col-md-6"><strong>Date of Birth:</strong> {{ trainer.dob or 'N/A' }}</div>
+                <div class="col-md-6"><strong>Gender:</strong> {{ trainer.gender or 'N/A' }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Address Card -->
+    <div class="card mb-3 shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title">Address</h5>
+            <div class="row">
+                <div class="col-md-6"><strong>Country:</strong> {{ trainer.country or 'N/A' }}</div>
+                <div class="col-md-6"><strong>State:</strong> {{ trainer.state or 'N/A' }}</div>
+                <div class="col-md-6"><strong>City:</strong> {{ trainer.city or 'N/A' }}</div>
+                <div class="col-md-6"><strong>Zip Code:</strong> {{ trainer.zip_code or 'N/A' }}</div>
+                <div class="col-md-12"><strong>Address:</strong> {{ trainer.address or 'N/A' }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Professional Info Card -->
+    <div class="card mb-3 shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title">Professional Info</h5>
+            <div class="row">
+                <div class="col-md-6"><strong>Qualifications:</strong> {{ trainer.qualifications or 'N/A' }}</div>
+                <div class="col-md-6"><strong>Experience:</strong> {{ trainer.experience_years or 0 }} years</div>
+                <div class="col-md-6"><strong>Specialization:</strong> {{ trainer.specialization or 'N/A' }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Emergency Contact Card -->
+    <div class="card mb-3 shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title">Emergency Contact</h5>
+            <div class="row">
+                <div class="col-md-6"><strong>Name:</strong> {{ trainer.emergency_contact_name or 'N/A' }}</div>
+                <div class="col-md-6"><strong>Phone:</strong> {{ trainer.emergency_contact_phone or 'N/A' }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-4">
+        <a href="{{ url_for('trainer.dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+</div>
+{% endblock %}
+    

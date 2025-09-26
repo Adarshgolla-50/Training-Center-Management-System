@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    #formMessage {
+        display: none;
+        transition: opacity 0.3s;
+        opacity: 0;
+        margin-bottom: 20px;
+    }
+    #formMessage.visible {
+        display: block;
+        opacity: 1;
+    }
+    #dropdownCourses::after { display: none !important; }
+    .hover-bg:hover { background-color: #f8f9fa; border-radius: 6px; cursor: pointer; }
+
+    /* Dropdown symbol */
+    .dropdown-symbol {
+        pointer-events: none;
+        font-size: 0.9rem;
+        margin-left: auto;
+        color: #495057;
+    }
+</style>
+
+<div class="row">
+    <div class="col-md-12 grid-margin">
+        <h3 class="font-weight-bold">Edit Trainer</h3>
+        <h6 class="font-weight-normal mb-0">Update trainer details and assigned courses.</h6>
+    </div>
+</div>
+
+<div class="row mt-1">
+    <div class="col-lg-12">
+        <div class="card shadow-lg border-0">
+            <div class="card-body">
+                <div id="formMessage" class="alert" role="alert" tabindex="-1"></div>
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="card-title mb-0">Edit Trainer</h4>
+                    <a href="{{ url_for('super_admin.trainers') }}" class="btn btn-primary">View All Trainers</a>
+                </div>
+
+                <form id="editTrainerForm" class="forms-sample" method="POST" action="{{ url_for('super_admin.edit_trainer', trainer_id=trainer.user_id) }}">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="fullName">Full Name</label>
+                                <input type="text" class="form-control" id="fullName" name="full_name"
+                                       value="{{ trainer.full_name }}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="email">Email address</label>
+                                <input type="email" class="form-control" id="email" name="email"
+                                       value="{{ trainer.email }}" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="phone">Phone</label>
+                                <input type="text" class="form-control" id="phone" name="phone"
+                                       value="{{ trainer.phone }}">
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <!-- Assign Courses Dropdown -->
+                            <div class="form-group">
+                                <label class="mb-2"><strong>Assign Courses</strong></label>
+                                <div class="dropdown w-100">
+                                    <div class="form-control d-flex justify-content-between align-items-center"
+                                         id="dropdownCourses" data-bs-toggle="dropdown" aria-expanded="false"
+                                         style="cursor: pointer;">
+                                        <span id="dropdownText">Select Courses</span>
+                                        <i class="bi bi-chevron-down dropdown-symbol"></i>
+                                    </div>
+
+                                    <ul class="dropdown-menu w-100 p-2 shadow-sm"
+                                        aria-labelledby="dropdownCourses"
+                                        style="max-height: 250px; overflow-y: auto; border-radius: 8px;">
+                                        {% for course in courses %}
+                                        <li>
+                                            <div class="d-flex align-items-center gap-2 py-1 px-2 rounded hover-bg course-item">
+                                                <input class="form-check-input m-0 course-checkbox"
+                                                       type="checkbox"
+                                                       id="course{{ course.course_id }}"
+                                                       name="courses"
+                                                       value="{{ course.course_id }}"
+                                                       {% if course.course_id in assigned_courses %}checked{% endif %}>
+                                                <label class="form-check-label mb-0" for="course{{ course.course_id }}">
+                                                    {{ course.course_name }}
+                                                </label>
+                                            </div>
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="status">Status</label>
+                                <select class="form-control" id="status" name="is_active" required>
+                                    <option value="True" {% if trainer.is_active %}selected{% endif %}>Active</option>
+                                    <option value="False" {% if not trainer.is_active %}selected{% endif %}>Inactive</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-center">
+                        <button type="submit" class="btn btn-primary mt-3">Update Trainer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const checkboxes = document.querySelectorAll(".course-checkbox");
+    const dropdownText = document.getElementById("dropdownText");
+
+    function updateDropdownText() {
+        const selected = [];
+        checkboxes.forEach(cb => { if(cb.checked){ selected.push(cb.nextElementSibling.innerText.trim()); }} );
+        dropdownText.textContent = selected.length > 0 ? selected.join(", ") : "Select Courses";
+    }
+
+    checkboxes.forEach(cb => cb.addEventListener("change", updateDropdownText));
+
+    document.querySelectorAll(".course-item").forEach(item => {
+        item.addEventListener("click", function(e){
+            if(e.target.tagName !== "INPUT"){
+                const checkbox = this.querySelector(".course-checkbox");
+                checkbox.checked = !checkbox.checked;
+                checkbox.dispatchEvent(new Event("change"));
+            }
+        });
+    });
+
+    document.querySelectorAll('.dropdown-menu').forEach(menu => menu.addEventListener('click', e => e.stopPropagation()));
+
+    // Initialize dropdown text on load
+    updateDropdownText();
+});
+</script>
+{% endblock %}

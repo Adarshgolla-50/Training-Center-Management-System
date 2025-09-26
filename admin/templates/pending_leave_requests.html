@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h3>Pending Leave Requests</h3>
+    <table class="table table-bordered mt-3">
+        <thead>
+            <tr>
+                <th>Student Name</th>
+                <th>Admission No</th>
+                <th>Course</th>
+                <th>Batch</th>
+                <th>Leave Dates</th>
+                <th>Reason</th>
+                <th>Requested On</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for leave in leaves %}
+            <tr>
+                <td>{{ leave.full_name }}</td>
+                <td>{{ leave.admission_no }}</td>
+                <td>{{ leave.course_name }}</td>
+                <td>{{ leave.batch_name }}</td>
+                <td>{{ leave.leave_from }} to {{ leave.leave_to }}</td>
+                <td>{{ leave.reason }}</td>
+                <td>{{ leave.requested_on }}</td>
+                <td>{{ leave.status }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% if not leaves %}
+        <div class="alert alert-info mt-3">No pending leave requests.</div>
+    {% endif %}
+</div>
+{% endblock %}

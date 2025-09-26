@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h3 class="mb-4">My Leave Applications</h3>
+
+    <a href="{{ url_for('student.apply_leave') }}" class="btn btn-success mb-3">+ Apply New Leave</a>
+
+    {% if leaves %}
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Type</th>
+                    <th>Period</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                    <th>Applied At</th>
+                    <!-- <th>Reviewed At</th> -->
+                    <th>Admin Comments</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for leave in leaves %}
+                <tr>
+                    <td>{{ leave.leave_id }}</td>
+                    <td>{{ leave.type_name }}</td>
+                    <td>{{ leave.start_date }} → {{ leave.end_date }}</td>
+                    <td>{{ leave.reason }}</td>
+                    <td>
+                        {% if leave.status == 'approved' %}
+                            <span class="badge bg-success">Approved</span>
+                        {% elif leave.status == 'rejected' %}
+                            <span class="badge bg-danger">Rejected</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ leave.applied_at }}</td>
+                    <!-- <td>{{ leave.reviewed_at if leave.reviewed_at else '-' }}</td> -->
+                    <td>{{ leave.admin_comments if leave.admin_comments else '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+        <div class="alert alert-info">No leave applications found.</div>
+    {% endif %}
+</div>
+{% endblock %}

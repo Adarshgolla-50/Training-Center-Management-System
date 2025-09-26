@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Password Reset Successful | TCMS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tcms.css') }}">
+    <style>
+        body { font-family: 'Roboto', sans-serif; background: #f6f8fa; }
+        .success-card {
+            max-width: 400px;
+            margin: 80px auto;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px #e0e0e0;
+            padding: 2.5rem 2.5rem 2rem 2.5rem;
+            text-align: center;
+        }
+        .success-card h2 { color: #388e3c; margin-bottom: 1rem; }
+        .success-card p { color: #333; margin-bottom: 2rem; }
+        .btn-login {
+            background: #1976d2; color: #fff; border: none; padding: 0.7rem 1.5rem;
+            border-radius: 4px; cursor: pointer; font-weight: 500; text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="success-card">
+        <h2>Password Reset Successful</h2>
+        <p>Your password has been reset successfully.<br>
+        You can now log in with your new password.</p>
+        <a href="{{ url_for('auth.login') }}" class="btn-login">Go to Login</a>
+    </div>
+</body>
+</html>

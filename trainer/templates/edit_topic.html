@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Edit Topic</h4>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('trainer.edit_topic', topic_id=topic.topic_id) }}" method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Course</label>
+                        <select name="course_id" class="form-select" required>
+                            {% for course in courses %}
+                                <option value="{{ course.course_id }}"
+                                    {% if course.course_id == topic.course_id %}selected{% endif %}>
+                                    {{ course.course_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Topic Name</label>
+                        <input type="text" name="topic_name" class="form-control"
+                               value="{{ topic.topic_name }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea name="description" class="form-control" id="description"
+                                  rows="6" style="min-height:150px;" required>{{ topic.description }}</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Sequence Order</label>
+                        <input type="number" name="sequence_order" class="form-control"
+                               value="{{ topic.sequence_order }}" min="1" required>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('trainer.topics') }}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-success">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h3 class="mb-4">Trainer Course Completion Tracker</h3>
+
+    <!-- Course Filter -->
+    <form method="get" class="mb-3">
+        <div class="row">
+            <div class="col-md-4">
+                <select class="form-select" name="course_id" onchange="this.form.submit()">
+                    <option value="">-- All Courses --</option>
+                    {% for course in courses %}
+                        <option value="{{ course.course_id }}" {% if course.course_id|string == selected_course_id %}selected{% endif %}>
+                            {{ course.course_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </form>
+
+    {% for item in tracker_list %}
+    <h5 class="mt-4">{{ item.course_name }} - {{ item.batch_name }}</h5>
+
+    <!-- Topics -->
+    {% if item.topic_progress %}
+    <h6>Topics Progress</h6>
+    <table class="table table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>Student</th>
+                <th>Topic</th>
+                <th>Completed</th>
+                <th>Remarks</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for tp in item.topic_progress %}
+            <tr class="{% if tp.completed == 0 %}table-danger{% endif %}">
+                <td>{{ tp.student_name }}</td>
+                <td>{{ tp.topic_name }}</td>
+                <td>{{ tp.completed }}</td>
+                <td>{{ tp.remarks }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    <!-- Assignments -->
+    {% if item.assignment_progress %}
+    <h6>Assignments Progress</h6>
+    <table class="table table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>Student</th>
+                <th>Assignment</th>
+                <th>Status</th>
+                <th>Due Date</th>
+                <th>Remarks</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ap in item.assignment_progress %}
+            <tr class="{% if ap.status != 'GRADED' %}table-warning{% endif %}">
+                <td>{{ ap.student_name }}</td>
+                <td>{{ ap.assignment_title }}</td>
+                <td>{{ ap.status }}</td>
+                <td>{{ ap.due_date }}</td>
+                <td>{{ ap.remarks }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    <hr>
+    {% endfor %}
+</div>
+{% endblock %}

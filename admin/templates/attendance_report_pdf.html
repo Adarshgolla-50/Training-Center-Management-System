@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Attendance Report</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        font-size: 12px;
+        margin: 20px;
+        color: #333;
+    }
+
+    h2, p {
+        text-align: center;
+        margin: 5px 0;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+    th, td {
+        border: 1px solid #444;
+        padding: 6px 10px;
+        text-align: center;
+    }
+
+    th {
+        background-color: #f2f2f2;
+        font-weight: bold;
+    }
+
+    tbody tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+
+    .summary {
+        width: 50%;
+        margin: 20px auto 0 auto;
+        border: none;
+    }
+
+    .summary td {
+        border: none;
+        text-align: left;
+        padding: 4px 8px;
+    }
+
+    /* Optional: force page break for PDF */
+    @media print {
+        body {
+            margin: 0.5in;
+        }
+        table {
+            page-break-inside: auto;
+        }
+        tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
+        }
+    }
+</style>
+</head>
+<body>
+    <h2>Attendance Report</h2>
+    <p>Batch ID: {{ batch_id }} | From {{ start_date }} to {{ end_date }}</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Roll No</th>
+                <th>Name</th>
+                <th>Total Classes</th>
+                <th>Present</th>
+                <th>Absent</th>
+                <th>Attendance %</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in report %}
+            <tr>
+                <td>{{ r.roll_no }}</td>
+                <td>{{ r.name }}</td>
+                <td>{{ r.total_classes }}</td>
+                <td>{{ r.present }}</td>
+                <td>{{ r.absent }}</td>
+                <td>{{ "%.2f"|format(r.attendance_percent) }}%</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <table class="summary">
+        <tr>
+            <td><strong>Students &lt;50% Attendance:</strong></td>
+            <td>{{ low_count }}</td>
+        </tr>
+        <tr>
+            <td><strong>Students 50-79% Attendance:</strong></td>
+            <td>{{ medium_count }}</td>
+        </tr>
+        <tr>
+            <td><strong>Students ≥80% Attendance:</strong></td>
+            <td>{{ high_count }}</td>
+        </tr>
+    </table>
+</body>
+</html>

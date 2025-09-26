@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    #formMessage {
+        display: none;
+        transition: opacity 0.3s;
+        opacity: 0;
+        margin-bottom: 20px;
+    }
+
+    #formMessage.visible {
+        display: block;
+        opacity: 1;
+    }
+
+    /* Remove default dropdown caret */
+    #dropdownCourses::after {
+        display: none !important;
+    }
+
+    /* Hover effect for dropdown items */
+    .hover-bg:hover {
+        background-color: #f8f9fa;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+</style>
+
+<div class="row">
+    <div class="col-md-12 grid-margin">
+        <h3 class="font-weight-bold">Add Trainer</h3>
+        <h6 class="font-weight-normal mb-0">Create a new Trainer account and assign courses.</h6>
+    </div>
+</div>
+
+<div class="row mt-1">
+    <div class="col-lg-12">
+        <div class="card shadow-lg border-0">
+            <div class="card-body">
+                <div id="formMessage" class="alert" role="alert" tabindex="-1"></div>
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="card-title mb-0">Add New Trainer</h4>
+                    <a href="{{ url_for('super_admin.trainers') }}" class="btn btn-primary">View All Trainers</a>
+                </div>
+
+                <form id="addTrainerForm" class="forms-sample">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="fullName">Full Name</label>
+                                <input type="text" class="form-control" id="fullName" name="full_name"
+                                       placeholder="Full Name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="email">Email address</label>
+                                <input type="email" class="form-control" id="email" name="email"
+                                       placeholder="Email" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="phone">Phone</label>
+                                <input type="text" class="form-control" id="phone" name="phone" placeholder="Phone">
+                            </div>
+                        </div>
+
+                        <!-- Assign Courses moved here -->
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="fw-bold mb-2">Assign Courses</label>
+                                <div class="dropdown w-100">
+                                    <div class="form-control d-flex justify-content-between align-items-center"
+                                         id="dropdownCourses" data-bs-toggle="dropdown" aria-expanded="false"
+                                         style="cursor: pointer;">
+                                        <span id="dropdownText">Select Courses</span>
+                                        <i class="bi bi-chevron-down"></i>
+                                    </div>
+
+                                    <ul class="dropdown-menu w-100 p-2 shadow-sm"
+                                        aria-labelledby="dropdownCourses"
+                                        style="max-height: 250px; overflow-y: auto; border-radius: 8px;">
+                                        {% for course in courses %}
+                                        <li>
+                                            <div class="d-flex align-items-center gap-2 py-1 px-2 rounded hover-bg course-item"
+                                                 data-target="course{{ course.course_id }}">
+                                                <input class="form-check-input m-0 course-checkbox"
+                                                       type="checkbox"
+                                                       id="course{{ course.course_id }}"
+                                                       name="courses"
+                                                       value="{{ course.course_id }}">
+                                                <label class="form-check-label mb-0"
+                                                       for="course{{ course.course_id }}">
+                                                    {{ course.course_name }}
+                                                </label>
+                                            </div>
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Status moved below -->
+                    <div class="row mt-2">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="status">Status</label>
+                                <select class="form-control" id="status" name="is_active" required>
+                                    <option value="">Select a Status</option>
+                                    <option value="True">Active</option>
+                                    <option value="False">Inactive</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-center">
+                        <button type="submit" class="btn btn-primary mt-3">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("addTrainerForm");
+    const messageDiv = document.getElementById("formMessage");
+    const dropdownText = document.getElementById("dropdownText");
+    const checkboxes = document.querySelectorAll(".course-checkbox");
+
+    function updateButtonText() {
+        const selected = [];
+        checkboxes.forEach(cb => {
+            if (cb.checked) {
+                const label = document.querySelector(`label[for="${cb.id}"]`);
+                if (label) selected.push(label.innerText.trim());
+            }
+        });
+        dropdownText.textContent = selected.length ? selected.join(", ") : "Select Courses";
+    }
+    checkboxes.forEach(cb => cb.addEventListener("change", updateButtonText));
+
+    document.querySelectorAll(".course-item").forEach(item => {
+        item.addEventListener("click", function (e) {
+            if (e.target.tagName !== "INPUT") {
+                const checkbox = this.querySelector(".course-checkbox");
+                checkbox.checked = !checkbox.checked;
+                checkbox.dispatchEvent(new Event("change"));
+            }
+        });
+    });
+
+    document.querySelectorAll('.dropdown-menu').forEach(menu => {
+        menu.addEventListener('click', function (e) {
+            e.stopPropagation();
+        });
+    });
+
+    function showMessage(type, text) {
+        messageDiv.className = "alert alert-" + (type === "success" ? "success" : "danger") + " visible";
+        messageDiv.textContent = text;
+        setTimeout(() => {
+            messageDiv.focus();
+            messageDiv.scrollIntoView({behavior: "smooth", block: "center"});
+        }, 100);
+    }
+    function hideMessage() {
+        messageDiv.className = "alert";
+        messageDiv.textContent = "";
+    }
+
+    form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        hideMessage();
+        const formData = new FormData(form);
+
+        fetch("{{ url_for('super_admin.add_trainer') }}", {
+            method: "POST",
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                form.reset();
+                dropdownText.textContent = "Select Courses";
+                showMessage("success", data.message || "Trainer created successfully!");
+            } else {
+                showMessage("error", data.error || "Something went wrong!");
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            showMessage("error", "An error occurred. Please try again.");
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>Leave Types by Batch</h3>
+
+<!-- Table showing leave types per batch -->
+<table class="table table-bordered mt-3">
+    <thead class="table-light">
+        <tr>
+            <th>Batch</th>
+            <th>Personal Leave</th>
+            <th>Education Leave</th>
+            <th>Medical Leave</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for lt in leave_types %}
+        <tr>
+            <td>{{ lt.batch_name }}</td>
+            <td>{{ lt.personal_max_days if lt.personal_max_days != 0 else "∞" }}</td>
+            <td>{{ lt.education_max_days if lt.education_max_days != 0 else "∞" }}</td>
+            <td>{{ lt.medical_max_days if lt.medical_max_days != 0 else "∞" }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

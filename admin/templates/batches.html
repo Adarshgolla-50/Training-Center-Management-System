@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .batch-card {
+        border-radius: 1rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        transition: transform 0.2s, box-shadow 0.2s;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .batch-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .batch-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.75rem;
+    }
+
+    .batch-title {
+        font-weight: 600;
+        font-size: 1.1rem;
+        word-break: break-word;
+    }
+
+    .batch-status {
+        font-weight: 500;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    .status-upcoming {
+        background-color: #d0ebff;
+        color: #1c7ed6;
+    }
+
+    .status-ongoing {
+        background-color: #c3fae8;
+        color: #20c997;
+    }
+
+    .status-completed {
+        background-color: #d3f9d8;
+        color: #37b24d;
+    }
+
+    .status-cancelled {
+        background-color: #ffe3e3;
+        color: #f03e3e;
+    }
+
+    .batch-info {
+        font-size: 0.9rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .batch-info span {
+        font-weight: 500;
+    }
+
+    .batch-actions {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.5rem;
+    }
+
+    .active-toggle-label {
+        margin-left: 0.5rem;
+        font-weight: 500;
+    }
+</style>
+
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <h3 class="font-weight-bold">Batch Management</h3>
+        <a href="{{ url_for('admin.add_batch') }}" class="btn btn-primary">Add New Batch</a>
+    </div>
+</div>
+
+<div class="row g-4">
+    {% for batch in batches %}
+    <div class="col-md-6 col-lg-4">
+        <div class="batch-card">
+            <div class="batch-header">
+                <div class="batch-title">{{ batch.batch_name }}</div>
+            </div>
+
+            <div class="batch-info">
+                <div><span>Course:</span> {{ batch.course_name }}</div>
+                <div><span>Start:</span> {{ batch.start_date }}</div>
+                <div><span>End:</span> {{ batch.end_date }}</div>
+                <div><span>Max Students:</span> {{ batch.max_students }}</div>
+            </div>
+
+            <div class="d-flex align-items-center mb-2">
+                <input class="form-check-input active-toggle" type="checkbox" data-batch-id="{{ batch.batch_id }}" {% if
+                    batch.is_active %}checked{% endif %}>
+                <span class="active-toggle-label {{ 'text-success' if batch.is_active else 'text-danger' }}">
+                    {{ 'Active' if batch.is_active else 'Inactive' }}
+                </span>
+            </div>
+
+            <div class="batch-actions d-flex gap-1">
+                <button class="btn btn-sm btn-dark view-details" data-bs-toggle="modal"
+                    data-bs-target="#batchModal" data-batch-id="{{ batch.batch_id }}">View</button>
+                <a href="{{ url_for('admin.edit_batch', batch_id=batch.batch_id) }}"
+                    class="btn btn-sm btn-info">Edit</a>
+                <a href="{{ url_for('admin.delete_batch', batch_id=batch.batch_id) }}" class="btn btn-sm btn-danger"
+                    onclick="return confirm('Are you sure you want to delete this batch?')">Delete</a>
+            </div>
+
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12 text-center">
+        <p>No batches found.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Batch Details Modal -->
+<div class="modal fade" id="batchModal" tabindex="-1" aria-labelledby="batchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="batchModalLabel">Batch Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="batchModalBody">
+                <div class="text-center">Loading...</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Active/Inactive Toggle
+        document.querySelectorAll('.active-toggle').forEach(toggle => {
+            toggle.addEventListener('change', function () {
+                const batchId = this.dataset.batchId;
+                const isActive = this.checked ? 1 : 0;
+                const activeLabel = this.closest('div').querySelector('.active-toggle-label');
+
+                fetch(`/admin/toggle_batch_status/${batchId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ is_active: isActive })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            activeLabel.textContent = isActive ? "Active" : "Inactive";
+                            activeLabel.classList.toggle("text-success", isActive);
+                            activeLabel.classList.toggle("text-danger", !isActive);
+                        } else {
+                            alert("Failed to update status");
+                            this.checked = !isActive;
+                        }
+                    })
+                    .catch(() => {
+                        alert("Error updating status");
+                        this.checked = !isActive;
+                    });
+            });
+        });
+
+        // View Modal
+        document.querySelectorAll('.view-details').forEach(button => {
+            button.addEventListener('click', function () {
+                const batchId = this.dataset.batchId;
+                const modalBody = document.getElementById('batchModalBody');
+                modalBody.innerHTML = '<div class="text-center">Loading...</div>';
+
+                fetch(`/admin/batches?batch_id=${batchId}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            const batch = data.batch;
+
+                            // Format dates
+                            const startDate = new Date(batch.start_date).toLocaleDateString('en-CA');
+                            const endDate = new Date(batch.end_date).toLocaleDateString('en-CA');
+
+                            // Active badge
+                            const activeBadge = batch.is_active
+                                ? '<span class="badge bg-success">Active</span>'
+                                : '<span class="badge bg-danger">Inactive</span>';
+
+                            // Trainers table
+                            let trainersTable = '<p><strong>Assigned Trainers:</strong></p>';
+                            if (batch.trainers.length) {
+                                trainersTable += `
+                                <table class="table table-sm table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${batch.trainers.map(t => `
+                                            <tr>
+                                                <td>${t.trainer_name}</td>
+                                                <td>${t.is_active ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-danger">Inactive</span>'}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            `;
+                            } else {
+                                trainersTable += '<p>None</p>';
+                            }
+
+                            modalBody.innerHTML = `
+                            <div class="mb-3">
+                                <h3>Course:${batch.course_name}</h3>
+                                <h5>${batch.batch_name}   ${activeBadge}</h5>
+                            </div>
+                            <div class="row g-2 mb-3">
+                                <div class="col-md-6"><strong>Start Date:</strong> ${startDate}</div>
+                                <div class="col-md-6"><strong>End Date:</strong> ${endDate}</div>
+                                <div class="col-md-6"><strong>Duration:</strong> ${batch.duration_weeks} weeks</div>
+                                <div class="col-md-6"><strong>Max Students:</strong> ${batch.max_students}</div>  
+                                <div class="col-md-6"><strong>Personal Leaves:</strong> ${batch.personal_leaves}</div>
+                                <div class="col-md-6"><strong>Medical Leaves:</strong> ${batch.medical_leaves ?? 'Unlimited'}</div>
+                                <div class="col-md-6"><strong>Educational Leaves:</strong> ${batch.educational_leaves ?? 'Unlimited'}</div>                              
+                            </div>
+                            ${trainersTable}
+                        `;
+                        } else {
+                            modalBody.innerHTML = `<p class="text-danger">${data.error}</p>`;
+                        }
+                    })
+                    .catch(() => {
+                        modalBody.innerHTML = `<p class="text-danger">Failed to load batch details.</p>`;
+                    });
+            });
+        });
+    });
+</script>
+{% endblock %}

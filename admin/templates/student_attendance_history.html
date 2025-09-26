@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+  <h2 class="mb-4">Student Attendance History</h2>
+
+  <form method="get" class="row g-3 mb-4" id="historyForm">
+    <div class="col-md-4">
+      <label class="form-label">Select Batch</label>
+      <select name="batch_id" id="batchSelect" class="form-select">
+        <option value="">All Batches</option>
+        {% for b in batches %}
+          <option value="{{ b.batch_id }}" {% if selected_batch == b.batch_id %}selected{% endif %}>
+            {{ b.batch_name }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label">Select Student</label>
+      <select name="student_id" id="studentSelect" class="form-select" required>
+        <option value="">-- Choose Student --</option>
+        {% for s in students %}
+          <option value="{{ s.student_id }}" {% if selected_student == s.student_id %}selected{% endif %}>
+            {{ s.full_name }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="col-md-2">
+      <label class="form-label">From</label>
+      <input type="date" name="start_date" value="{{ start_date }}" class="form-control">
+    </div>
+    <div class="col-md-2">
+      <label class="form-label">To</label>
+      <input type="date" name="end_date" value="{{ end_date }}" class="form-control">
+    </div>
+
+    <div class="col-md-12 mt-2">
+      <button type="submit" class="btn btn-primary">View History</button>
+    </div>
+  </form>
+
+  {% if history %}
+  <div class="mb-3">
+    <p><strong>Total Classes:</strong> {{ summary.total }}</p>
+    <p><strong>Present:</strong> {{ summary.present }}</p>
+    <p><strong>Absent:</strong> {{ summary.absent }}</p>
+    <p><strong>Attendance %:</strong> {{ summary.percentage }}%</p>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-bordered table-striped">
+      <thead class="table-light">
+        <tr>
+          <th>Date</th>
+          <th>Batch</th>
+          <th>Status</th>
+          <th>Remarks</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for h in history %}
+        <tr>
+          <td>{{ h.attendance_date }}</td>
+          <td>{{ h.batch_name }}</td>
+          <td>{{ h.status }}</td>
+          <td>{{ h.remarks }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Optional JS for dynamic student loading -->
+<script>
+document.getElementById('batchSelect').addEventListener('change', function() {
+    // When batch changes, submit the form to reload students
+    document.getElementById('historyForm').submit();
+});
+</script>
+{% endblock %}

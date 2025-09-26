@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h3 class="mb-3">My Topic Progress</h3>
+
+    <!-- ✅ Course-wise progress summary cards -->
+    <div class="row mb-3">
+        {% for course in course_progress.values() %}
+        <div class="col-md-4 mb-2">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <h5 class="card-title">{{ course.course_name }}</h5>
+                    <p class="card-text">
+                        Topics Completed: {{ course.completed }}/{{ course.total }}<br>
+                        Completion: {{ course.completion_percent }}%
+                    </p>
+                    <div class="progress">
+                        <div class="progress-bar bg-success" role="progressbar" 
+                             style="width: {{ course.completion_percent }}%" 
+                             aria-valuenow="{{ course.completion_percent }}" aria-valuemin="0" aria-valuemax="100">
+                            {{ course.completion_percent }}%
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- ✅ Topics table goes here -->
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover table-sm">
+            <thead class="table-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Topic Name</th>                    
+                    <th>Batch</th>
+                    <th>Due Date</th>
+                    <th>Remaining Days</th>
+                    <th>Completion %</th>                    
+                    <th>Update Progress</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for topic in topics %}
+                
+                <tr {% if topic.remaining_days != '-' and topic.remaining_days < 0 %}class="table-danger"{% endif %}>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ topic.topic_name }}</td>                    
+                    <td>{{ topic.batch_name or '-' }}</td>
+                    <td>{{ topic.due_date or '-' }}</td>
+                    <td>
+                        {% if topic.remaining_days != '-' %}
+                            {% if topic.remaining_days < 0 %}
+                                <span class="text-danger">{{ topic.remaining_days }}</span>
+                            {% else %}
+                                {{ topic.remaining_days }}
+                            {% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>{{ topic.completion_percent }}%</td>
+                    
+                    <td>
+                        {% if topic.completion_percent < 100 %}
+                        <form method="POST" action="{{ url_for('trainer.mark_topic_complete') }}" class="d-flex gap-1">
+                            <input type="hidden" name="topic_id" value="{{ topic.topic_id }}">
+                            <input type="hidden" name="batch_id" value="{{ topic.batch_id }}">
+                            <input type="hidden" name="course_id" value="{{ topic.course_id }}">
+                            <select name="completed" class="form-select form-select-sm">
+                                <option value="25" {% if topic.completion_percent==25 %}selected{% endif %}>25%</option>
+                                <option value="50" {% if topic.completion_percent==50 %}selected{% endif %}>50%</option>
+                                <option value="75" {% if topic.completion_percent==75 %}selected{% endif %}>75%</option>
+                                <option value="100">100%</option>
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-success">Update</button>
+                        </form>
+                        {% else %}
+                        <span class="text-success">Done</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

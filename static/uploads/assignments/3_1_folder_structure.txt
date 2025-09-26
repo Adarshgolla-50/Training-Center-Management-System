@@ -1,0 +1,45 @@
+training_center/
+│── app.py                      # App factory + blueprint registration
+│── config.py                   # Secrets & DB config
+│── requirements.txt
+│── schema.sql                  # DB DDL (start minimal; extend per spec)
+│
+├── templates/                  # Shared base layouts
+│   └── base.html
+├── static/
+│   └── css/
+│       └── style.css
+│
+├── models/                     # All DB logic (clean separation of concerns)
+│   ├── __init__.py
+│   ├── db.py                   # Single source for MySQL connections
+│   ├── user_model.py           # Users + auth (admin/trainer/student)
+│   ├── course_model.py         # Courses
+│   └── student_model.py        # Student enrollments (extend later)
+│
+├── auth/                       # Authentication-only blueprint
+│   ├── __init__.py
+│   ├── routes.py
+│   └── templates/
+│       └── login.html
+│
+├── admin/                      # Admin-only UI (RBAC gate)
+│   ├── __init__.py
+│   ├── routes.py
+│   └── templates/
+│       ├── dashboard.html
+│       ├── add_course.html
+│       ├── add_trainer.html
+│       └── add_student.html
+│
+├── trainer/                    # Trainer-only UI
+│   ├── __init__.py
+│   ├── routes.py
+│   └── templates/
+│       └── dashboard.html
+│
+└── student/                    # Student-only UI
+    ├── __init__.py
+    ├── routes.py
+    └── templates/
+        └── dashboard.html

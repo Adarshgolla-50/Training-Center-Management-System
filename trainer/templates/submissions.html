@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <!-- Assignment Header -->
+    <div class="row align-items-center mb-3">
+        <div class="col">
+            <h3>Submissions for: {{ assignment.title }}</h3>
+            <p>
+                <strong>Course:</strong> {{ assignment.course_name }} |
+                <strong>Batch:</strong> {{ assignment.batch_name }} |
+                <strong>Due:</strong> {{ assignment.due_date.strftime('%Y-%m-%d') }}
+            </p>
+        </div>
+        <div class="col-auto text-end">
+            <a href="{{ url_for('trainer.download_submissions', assignment_id=assignment.assignment_id) }}"
+               class="btn bg-success text-white">
+                📥 Download All Submissions (ZIP)
+            </a>
+        </div>
+    </div>
+
+    <!-- Filter / Search / Sort -->
+    <!-- Filter / Search / Sort (Compact Version) -->
+<form method="get" class="row g-1 mb-3 align-items-center">
+    <div class="col-md-3">
+        <input type="text" name="student_name" value="{{ selected_filters.student_name or '' }}"
+               class="form-control form-control-sm" placeholder="Student Name">
+    </div>
+    <div class="col-md-2">
+        <select name="grade" class="form-select form-select-sm">
+            <option value="">All Grades</option>
+            <option value="A" {% if selected_filters.grade == "A" %}selected{% endif %}>A</option>
+            <option value="B" {% if selected_filters.grade == "B" %}selected{% endif %}>B</option>
+            <option value="C" {% if selected_filters.grade == "C" %}selected{% endif %}>C</option>
+            <option value="F" {% if selected_filters.grade == "F" %}selected{% endif %}>F</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <select name="status" class="form-select form-select-sm">
+            <option value="">All Status</option>
+            <option value="SUBMITTED" {% if selected_filters.status == "SUBMITTED" %}selected{% endif %}>Submitted</option>
+            <option value="GRADED" {% if selected_filters.status == "GRADED" %}selected{% endif %}>Graded</option>
+            <option value="PENDING" {% if selected_filters.status == "PENDING" %}selected{% endif %}>Pending</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <select name="sort" class="form-select form-select-sm">
+            <option value="name" {% if request.args.get('sort') == 'name' %}selected{% endif %}>Sort by Name</option>
+            <option value="date" {% if request.args.get('sort') == 'date' %}selected{% endif %}>Sort by Date</option>
+            <option value="grade" {% if request.args.get('sort') == 'grade' %}selected{% endif %}>Sort by Grade</option>
+        </select>
+    </div>
+    <div class="col-md-2 d-grid">
+        <button type="submit" class="btn btn-sm btn-primary">Apply</button>
+    </div>
+    <div class="col-md-1 d-grid">
+        <a href="{{ url_for('trainer.view_submissions', assignment_id=assignment.assignment_id) }}" class="btn btn-sm btn-outline-secondary">Reset</a>
+    </div>
+</form>
+
+
+    <!-- Submissions Table -->
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Student</th>
+                    <th>Submitted?</th>
+                    <th>File</th>
+                    <th>Status</th>
+                    <th>Grade</th>
+                    <th>Feedback</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in submissions %}
+                <tr>
+                    <td>{{ s.student_name }}</td>
+                    <td>
+                        {% if s.submission_id %}
+                            <span class="badge bg-success">Yes ({{ s.submitted_at.strftime('%Y-%m-%d %H:%M') }})</span>
+                            {% if s.is_late %}
+                            <span class="badge bg-danger">Late</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="badge bg-danger">No</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if s.file_path %}
+                        <a href="{{ url_for('static', filename='uploads/assignments/' ~ s.file_path) }}"
+                           class="btn btn-sm btn-outline-primary" target="_blank">Download</a>
+                        {% else %}-{% endif %}
+                    </td>
+                    <td>
+                        {% if s.status == 'SUBMITTED' %}
+                            <span class="badge bg-success">Submitted</span>
+                        {% elif s.status == 'GRADED' %}
+                            <span class="badge bg-info">Graded</span>
+                        {% else %}
+                            <span class="badge bg-warning">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if s.grade %} {{ s.grade }} ({{ s.marks_obtained or 0 }} marks)
+                        {% else %}-{% endif %}
+                    </td>
+                    <td>{{ s.feedback or '-' }}</td>
+                    <td>
+                        {% if s.submission_id %}
+                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                                    data-bs-target="#gradeModal{{ s.submission_id }}">Grade</button>
+                        {% else %}
+                            <em>Not Submitted</em>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center">No submissions found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if total_pages > 1 %}
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            {% for p in range(1, total_pages+1) %}
+            <li class="page-item {% if p == current_page %}active{% endif %}">
+                <a class="page-link" href="{{ url_for('trainer.view_submissions', assignment_id=assignment.assignment_id, page=p, **request.args.to_dict()) }}">
+                    {{ p }}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </nav>
+    {% endif %}
+
+</div>
+
+<!-- Modals (Grade Form) -->
+{% for s in submissions %}
+{% if s.submission_id %}
+<div class="modal fade" id="gradeModal{{ s.submission_id }}" tabindex="-1"
+     aria-labelledby="gradeModalLabel{{ s.submission_id }}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" enctype="multipart/form-data"
+                  action="{{ url_for('trainer.grade_submissions', assignment_id=assignment.assignment_id) }}">
+                <div class="modal-header">
+                    <h5 class="modal-title">Grade: {{ s.student_name }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="submission_id" value="{{ s.submission_id }}">
+                    <div class="mb-3">
+                        <label class="form-label">Marks Obtained</label>
+                        <input type="number" name="marks_obtained" value="{{ s.marks_obtained or '' }}"
+                               class="form-control" min="0" max="{{ assignment.total_marks or 100 }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Grade</label>
+                        <input type="text" name="grade" value="{{ s.grade or '' }}" class="form-control" maxlength="5">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Feedback</label>
+                        <textarea name="feedback" class="form-control" rows="3">{{ s.feedback or '' }}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Feedback File</label>
+                        <input type="file" name="feedback_file" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Save & Update</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endfor %}
+
+{% endblock %}

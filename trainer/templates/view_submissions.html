@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Submissions for: "{{ assignment.title }}"</h2>
+
+    <a href="{{ url_for('trainer.download_submissions', assignment_id=assignment.assignment_id) }}"
+       class="btn bg-success text-white mb-3">
+        📥 Download All Submissions (ZIP)
+    </a>
+
+    <table class="table table-bordered table-hover">
+        <thead class="table-light">
+            <tr>
+                <th>#</th>
+                <th>Student Name</th>
+                <th>Submitted At</th>
+                <th>Status</th>
+                <th>Marks</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sub in submissions %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ sub.full_name }}</td>
+                <td>{{ sub.submitted_at }}</td>
+                <td>{{ sub.status }}</td>
+                <td>{{ sub.marks_obtained or '-' }}</td>
+                <td>
+                    <!-- Grade Button -->
+                    <button class="btn btn-sm btn-success" data-bs-toggle="modal"
+                        data-bs-target="#gradeModal{{ sub.submission_id }}">
+                        <i class="mdi mdi-check"></i> Grade
+                    </button>
+
+                    <!-- Grade Modal -->
+                    <div class="modal fade" id="gradeModal{{ sub.submission_id }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <form action="{{ url_for('trainer.grade_submission', submission_id=sub.submission_id) }}"
+                                method="POST">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-success text-white">
+                                        <h5 class="modal-title">Grade Submission: {{ sub.full_name }}</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label class="form-label">Marks Obtained</label>
+                                            <input type="number" name="marks_obtained" class="form-control"
+                                                value="{{ sub.marks_obtained if sub.marks_obtained is not none else '' }}"
+                                                min="0" max="{{ assignment.total_marks }}" required
+                                                placeholder="Enter marks">
+                                            {% if sub.marks_obtained is none %}
+                                            <small class="text-muted">Not graded yet</small>
+                                            {% endif %}
+                                        </div>                                        
+                                        <div class="mb-3">
+                                            <label class="form-label">Feedback</label>
+                                            <textarea name="feedback" class="form-control" rows="3"
+                                                placeholder="Enter feedback">{{ sub.feedback or '' }}</textarea>
+                                            {% if not sub.feedback %}
+                                            <small class="text-muted">No feedback yet</small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="submit" class="btn btn-success">Save Grade</button>
+                                        <button type="button" class="btn btn-danger"
+                                            data-bs-dismiss="modal">Cancel</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" class="text-center text-muted">No submissions yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ url_for('trainer.view_assignments', subtopic_id=assignment.subtopic_id, course_id=assignment.course_id, batch_id=assignment.batch_id) }}"
+        class="btn btn-dark mt-3">Back to Assignments</a>
+</div>
+{% endblock %}

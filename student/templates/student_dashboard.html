@@ -1,0 +1,408 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% if session.get('is_password_changed', 0) == 0 %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <strong>Important!</strong> You need to change your password for security reasons.
+            <a href="{{ url_for('auth.change_password') }}" class="alert-link">Change Password Now</a>.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+{% endif %}
+<div class="row">
+    <div class="col-md-12 grid-margin">
+        <div class="row">
+            <div class="col-12 col-xl-8 mb-4 mb-xl-0">
+                <h3 class="font-weight-bold">Welcome, {{ session.get('user_name') | capitalize }}!</h3>
+                <h6 class="font-weight-normal mb-0">Here’s an overview of your courses, assignments, attendance, and leave status!</h6>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Dashboard Cards -->
+<div class="row">
+    <!-- <div class="col-md-4 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <p class="card-title text-md-center text-xl-left">Enrolled Courses</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">{{ total_batches }}</h3>
+                    <i class="mdi mdi-book-open-page-variant icon-md text-success mb-0"></i>
+                </div>
+            </div>
+        </div>
+    </div> -->
+        <!-- Assignments Completed / Total Card -->
+    <div class="col-md-3 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <p class="card-title text-md-center text-xl-left">Assignments Completed</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">
+                        {{ assignment_summary.completed }}/{{ assignment_summary.total_assignments }}
+                    </h3>
+                    <i class="mdi mdi-check-circle-outline icon-md text-success mb-0"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <p class="card-title text-md-center text-xl-left">Pending Assignments</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">{{ assignment_summary.pending }}</h3>
+                    <i class="mdi mdi-alert-circle-outline icon-md text-warning mb-0"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+        
+        <!-- Personal Leaves Card -->
+    
+        <!-- Overall Average Points Card -->
+    <div class="col-md-3 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <p class="card-title text-md-center text-xl-left">Average Points</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">{{ avg_points }}</h3>
+                    <i class="mdi mdi-star-outline icon-md text-warning mb-0"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <p class="card-title text-md-center text-xl-left">Leaves Available</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    {% set personal_leave = leave_balances | selectattr('type_name', 'equalto', 'Personal Leave') | list | first %}
+                    {% if personal_leave %}
+                        <h3 class="mb-0">
+                            {{ personal_leave.total_days - personal_leave.available_days }}/{{ personal_leave.total_days }}
+                        </h3>
+                    {% else %}
+                        <h3 class="mb-0">0/0</h3>
+                    {% endif %}
+                    <i class="mdi mdi-calendar-check icon-md text-info mb-0"></i>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <!-- <div class="col-md-3 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <p class="card-title text-md-center text-xl-left">Completed Assignments</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">{{ assignment_summary.completed }}</h3>
+                    <i class="mdi mdi-check-circle-outline icon-md text-success mb-0"></i>
+                </div>
+            </div>
+        </div>
+    </div> -->
+
+
+    
+    <!-- <div class="col-md-3 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <p class="card-title text-md-center text-xl-left"></p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">{{ assignment_summary.pending }}</h3>
+                    <i class="mdi mdi-alert-circle-outline icon-md text-warning mb-0"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <p class="card-title text-md-center text-xl-left">Attendance %</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">{{ attendance_percentage }}%</h3>
+                    <i class="mdi mdi-account-check icon-md text-success mb-0"></i>
+                </div>
+            </div>
+        </div>
+    </div> -->
+    <!-- <div class="col-md-4 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+               
+            </div>
+        </div>
+    </div> -->
+</div>
+
+
+<!-- Charts Section -->
+<div class="row mt-4">
+    <div class="col-lg-6 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Attendance Overview</h4>
+                <canvas id="attendanceChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Leave Status</h4>
+                <canvas id="leaveChart" width="220" height="220" style="max-width:220px;max-height:220px;margin:auto;display:block;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row mt-4">
+    <div class="col-lg-6 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Performance by Topic</h4>
+                <canvas id="topicRadarChart" width="220" height="220" style="max-width:220px;max-height:220px;margin:auto;display:block;"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Last 5 Assignments</h4>
+                <canvas id="last5AssignmentsBarChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Pending Assignments Table -->
+<div class="row mt-4">
+    <div class="col-lg-12 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Pending Assignments</h4>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Assignment</th>
+                                <th>Course</th>
+                                <th>Batch</th>
+                                <th>Due Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for a in pending_assignments %}
+                            <tr>
+                                <td>{{ a.title }}</td>
+                                <td>{{ a.course_name }}</td>
+                                <td>{{ a.batch_name }}</td>
+                                <td>{{ a.due_date }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center">No pending assignments.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upcoming Assignment Deadlines -->
+<div class="row mt-4">
+    <div class="col-lg-12 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Upcoming Assignment Deadlines</h4>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Assignment</th>
+                                <th>Course</th>
+                                <th>Batch</th>
+                                <th>Due Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for assign in upcoming_assignments %}
+                            <tr>
+                                <td>{{ assign.title }}</td>
+                                <td>{{ assign.course_name }}</td>
+                                <td>{{ assign.batch_name }}</td>
+                                <td>{{ assign.due_date }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center">No upcoming assignments</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activities Table -->
+<!-- <div class="row mt-4">
+    <div class="col-lg-12 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Recent Activities</h4>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Action</th>
+                                <th>Table</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for activity in recent_activities %}
+                            <tr>
+                                <td>{{ activity.timestamp }}</td>
+                                <td>{{ activity.action }}</td>
+                                <td>{{ activity.table_affected }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="3" class="text-center">No recent activity found.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> -->
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Month-wise Attendance Trend Chart
+    const attendanceCtx = document.getElementById('attendanceChart').getContext('2d');
+    const attendanceChart = new Chart(attendanceCtx, {
+        type: 'line',
+        data: {
+            labels: {{ attendance_month_labels|tojson }},
+            datasets: [{
+                label: 'Attendance %',
+                data: {{ attendance_month_percentages|tojson }},
+                fill: true,
+                backgroundColor: 'rgba(54, 162, 235, 0.15)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 3,
+                tension: 0.4, // smooth flowing line
+                pointRadius: 4,
+                pointBackgroundColor: 'rgba(54, 162, 235, 1)'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    title: { display: true, text: 'Attendance %' }
+                },
+                x: {
+                    title: { display: true, text: 'Month' }
+                }
+            }
+        }
+    });
+
+    // Leave Chart
+    const leaveCtx = document.getElementById('leaveChart').getContext('2d');
+    const leaveChart = new Chart(leaveCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Approved', 'Pending', 'Rejected'],
+            datasets: [{
+                label: 'Leave Status',
+                data: [{{ leave_summary.approved }}, {{ leave_summary.pending }}, {{ leave_summary.rejected }}],
+                backgroundColor: ['#28a745', '#ffc107', '#dc3545']
+            }]
+        },
+        options: {
+            cutout: '65%', // makes the donut thinner
+            responsive: false,
+            maintainAspectRatio: false
+        }
+    });
+
+    // Topic-wise Radar Chart
+    const topicRadarCtx = document.getElementById('topicRadarChart').getContext('2d');
+    const topicRadarChart = new Chart(topicRadarCtx, {
+        type: 'radar',
+        data: {
+            labels: {{ topic_labels|tojson }},
+            datasets: [{
+                label: 'Average Marks',
+                data: {{ topic_average_marks|tojson }},
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 2,
+                pointBackgroundColor: 'rgba(54, 162, 235, 1)'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'top' }
+            },
+            scales: {
+                r: {
+                    beginAtZero: true,
+                    max: 100
+                }
+            }
+        }
+    });
+
+    // Last 5 Assignments Bar Chart
+    const last5BarCtx = document.getElementById('last5AssignmentsBarChart').getContext('2d');
+    const last5AssignmentsBarChart = new Chart(last5BarCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ last5_labels|tojson }},
+            datasets: [
+                {
+                    label: 'Marks Obtained',
+                    data: {{ last5_marks|tojson }},
+                    backgroundColor: 'rgba(255, 193, 7, 0.7)'
+                },
+                {
+                    label: 'Total Marks',
+                    data: {{ last5_total|tojson }},
+                    backgroundColor: 'rgba(200, 200, 200, 0.3)'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' }
+            },
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+</script>
+{% endblock %}

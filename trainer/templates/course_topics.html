@@ -1,0 +1,353 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% set open_topic = request.args.get('open_topic')|int %}
+<div class="container mt-5">
+    <h2 class="mb-4">Manage Course: "{{ course.course_name }}" - Batch: "{{ batch.batch_name }}"</h2>
+
+    <!-- Breadcrumb -->
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a href="{{ url_for('trainer.my_courses') }}">My Courses</a>
+        </li>
+        <!-- <li class="breadcrumb-item">
+            <a href="{{ url_for('trainer.course_batch', course_id=course.course_id) }}">{{ course.course_name }}</a>
+        </li> -->
+        <li class="breadcrumb-item active" aria-current="page">
+            {% if batch %}{{ batch.batch_name }}{% else %}Batch{% endif %}
+        </li>
+    </ol>
+
+    <!-- Add Topic Button -->
+    <div class="mb-3">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTopicModal">
+            <i class="mdi mdi-plus"></i> Add Topic
+        </button>
+    </div>
+
+    <!-- Topics Accordion -->
+    <div class="accordion" id="topicsAccordion">
+        {% for topic in topics %}
+        <div class="accordion-item mb-2 shadow-sm">
+            <h2 class="accordion-header" id="heading{{ topic.topic_id }}">
+                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#collapse{{ topic.topic_id }}" aria-expanded="false"
+                    aria-controls="collapse{{ topic.topic_id }}">
+                    {{ loop.index }}. {{ topic.topic_name }}
+                    <!-- <span class="ms-2 text-muted small">Progress: {{ topic.completion_percent }}%</span> -->
+                </button>
+            </h2>
+
+            <div id="collapse{{ topic.topic_id }}"
+                class="accordion-collapse collapse{% if open_topic == topic.topic_id %} show{% endif %}"
+                aria-labelledby="heading{{ topic.topic_id }}" data-bs-parent="#topicsAccordion">
+                <div class="accordion-body">
+
+                    <!-- Topic Actions -->
+                    <div class="mb-3">
+                        <button class="btn btn-sm btn-warning" data-bs-toggle="modal"
+                            data-bs-target="#editTopicModal{{ topic.topic_id }}">
+                            <i class="mdi mdi-pencil"></i> Edit Topic
+                        </button>
+                        <form
+                            action="{{ url_for('trainer.delete_topic', topic_id=topic.topic_id, batch_id=batch.batch_id) }}"
+                            method="POST" style="display:inline-block;">
+                            <button class="btn btn-sm btn-danger" onclick="return confirm('Delete this topic?')">
+                                <i class="mdi mdi-delete"></i> Delete Topic
+                            </button>
+                        </form>
+                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                            data-bs-target="#addSubtopicModal{{ topic.topic_id }}">
+                            <i class="mdi mdi-plus"></i> Add Subtopic
+                        </button>
+                    </div>
+
+                    <!-- {% if topic.description %}
+                    <div class="mb-3">
+                        <p><strong>Description:</strong> {{ topic.description }}</p>
+                    </div>
+                    {% endif %} -->
+
+                    <!-- Subtopics Table -->
+                    <table class="table table-bordered table-sm">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Subtopic</th>
+                                <th>Description</th>
+                                <!-- <th>Progress</th> -->
+                                <th>Assignments</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sub in topic.subtopics %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ sub.subtopic_name }}</td>
+                                <td>
+                                    {% if sub.description %}
+                                    {% set words = sub.description.split() %}
+                                    {{ words[:5]|join(' ') }}{% if words|length >  5%}...{% endif %}
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td>
+                                <!-- <td>
+                                    <div class="progress" style="height: 15px;">
+                                        <div class="progress-bar bg-info" role="progressbar"
+                                            style="width: {{ sub.completion_percent }}%;"
+                                            aria-valuenow="{{ sub.completion_percent }}" aria-valuemin="0"
+                                            aria-valuemax="100">
+                                            {{ sub.completion_percent }}%
+                                        </div>
+                                    </div>
+                                </td> -->
+                                <td>
+                                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                                        data-bs-target="#addAssignmentModal{{ sub.subtopic_id }}">
+                                        <i class="mdi mdi-file-document"></i> Add Assignment
+                                    </button>
+                                    <a href="{{ url_for('trainer.view_assignments', subtopic_id=sub.subtopic_id, course_id=course.course_id, batch_id=batch.batch_id) }}"
+                                        class="btn btn-sm btn-primary">
+                                        <i class="mdi mdi-eye"></i> View Assignments
+                                    </a>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-warning" data-bs-toggle="modal"
+                                        data-bs-target="#editSubtopicModal{{ sub.subtopic_id }}">
+                                        <i class="mdi mdi-pencil"></i>
+                                    </button>
+                                    <form
+                                        action="{{ url_for('trainer.delete_subtopic', subtopic_id=sub.subtopic_id, batch_id=batch.batch_id) }}"
+                                        method="POST" style="display:inline-block;">
+                                        <button class="btn btn-sm btn-danger"
+                                            onclick="return confirm('Delete this subtopic?')">
+                                            <i class="mdi mdi-delete"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+
+                            <!-- Add Assignment Modal -->
+                            <div class="modal fade" id="addAssignmentModal{{ sub.subtopic_id }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <form
+                                        action="{{ url_for('trainer.add_assignment', subtopic_id=sub.subtopic_id, batch_id=batch.batch_id) }}"
+                                        method="POST" enctype="multipart/form-data">
+                                        <div class="modal-content">
+                                            <div class="modal-header bg-primary text-white">
+                                                <h5 class="modal-title">Add Assignment to {{ sub.subtopic_name }}</h5>
+                                                <button type="button" class="btn-close"
+                                                    data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <input type="hidden" name="course_id" value="{{ course.course_id }}">
+                                                <input type="hidden" name="topic_id" value="{{ topic.topic_id }}">
+                                                <input type="hidden" name="batch_id" value="{{ batch.batch_id }}">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Title</label>
+                                                    <input type="text" name="title" class="form-control" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Description</label>
+                                                    <textarea name="description" class="form-control"
+                                                        rows="3"></textarea>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Due Date</label>
+                                                    <input type="date" name="due_date" class="form-control" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Total Marks</label>
+                                                    <input type="number" name="total_marks" class="form-control"
+                                                        value="100" min="1" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Attachment</label>
+                                                    <input type="file" name="attachment" class="form-control">
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button class="btn btn-success" type="submit">Save</button>
+                                                <button type="button" class="btn btn-danger"
+                                                    data-bs-dismiss="modal">Cancel</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <!-- Edit Subtopic Modal -->
+                            <div class="modal fade" id="editSubtopicModal{{ sub.subtopic_id }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <form
+                                        action="{{ url_for('trainer.edit_subtopic', subtopic_id=sub.subtopic_id, batch_id=batch.batch_id) }}"
+                                        method="POST">
+                                        <div class="modal-content">
+                                            <div class="modal-header bg-warning text-dark">
+                                                <h5 class="modal-title">Edit Subtopic: {{ sub.subtopic_name }}</h5>
+                                                <button type="button" class="btn-close"
+                                                    data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <input type="hidden" name="batch_id" value="{{ batch.batch_id }}">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Subtopic Name</label>
+                                                    <input type="text" name="subtopic_name" class="form-control"
+                                                        value="{{ sub.subtopic_name }}" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Description</label>
+                                                    <textarea name="description" class="form-control"
+                                                        rows="3">{{ sub.description }}</textarea>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Sequence Order</label>
+                                                    <input type="number" name="sequence_order" class="form-control"
+                                                        value="{{ sub.sequence_order }}" min="1">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Due Date</label>
+                                                    <input type="date" name="due_date" class="form-control"
+                                                        value="{{ sub.due_date }}">
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button class="btn btn-success" type="submit">Update</button>
+                                                <button type="button" class="btn btn-danger"
+                                                    data-bs-dismiss="modal">Cancel</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Subtopic Modal -->
+        <div class="modal fade" id="addSubtopicModal{{ topic.topic_id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <form action="{{ url_for('trainer.add_subtopic', topic_id=topic.topic_id, batch_id=batch.batch_id) }}"
+                    method="POST">
+                    <div class="modal-content">
+                        <div class="modal-header bg-primary text-white">
+                            <h5 class="modal-title">Add Subtopic to "{{ topic.topic_name }}"</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <input type="hidden" name="batch_id" value="{{ batch.batch_id }}">
+                            <div class="mb-3">
+                                <label class="form-label">Subtopic Name</label>
+                                <input type="text" name="subtopic_name" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Description</label>
+                                <textarea name="description" class="form-control" rows="3"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Sequence Order</label>
+                                <input type="number" name="sequence_order" class="form-control" min="1" value="1">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Due Date</label>
+                                <input type="date" name="due_date" class="form-control">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-success" type="submit">Save</button>
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Edit Topic Modal -->
+        <div class="modal fade" id="editTopicModal{{ topic.topic_id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <form action="{{ url_for('trainer.edit_topic', topic_id=topic.topic_id, batch_id=batch.batch_id) }}"
+                    method="POST">
+                    <div class="modal-content">
+                        <div class="modal-header bg-warning text-dark">
+                            <h5 class="modal-title">Edit Topic: {{ topic.topic_name }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <input type="hidden" name="batch_id" value="{{ batch.batch_id }}">
+                            <div class="mb-3">
+                                <label class="form-label">Topic Name</label>
+                                <input type="text" name="topic_name" class="form-control" value="{{ topic.topic_name }}"
+                                    required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Description</label>
+                                <textarea name="description" class="form-control"
+                                    rows="3">{{ topic.description }}</textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Sequence Order</label>
+                                <input type="number" name="sequence_order" class="form-control"
+                                    value="{{ topic.sequence_order }}" min="1">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Due Date</label>
+                                <input type="date" name="due_date" class="form-control" value="{{ topic.due_date }}">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-success" type="submit">Update</button>
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% else %}
+        <div class="alert alert-info">No topics found for this batch in this course.</div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Add Topic Modal -->
+<div class="modal fade" id="addTopicModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form action="{{ url_for('trainer.add_topic', course_id=course.course_id, batch_id=batch.batch_id) }}"
+            method="POST">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">Add Topic</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="batch_id" value="{{ batch.batch_id }}">
+                    <div class="mb-3">
+                        <label class="form-label">Topic Name</label>
+                        <input type="text" name="topic_name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea name="description" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Sequence Order</label>
+                        <input type="number" name="sequence_order" class="form-control" min="1" value="1">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Due Date</label>
+                        <input type="date" name="due_date" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-success" type="submit">Save</button>
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

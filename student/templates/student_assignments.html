@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+
+        <!-- Filter & Sort Form -->
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <form method="get" id="filterSortForm">
+                    <label for="topicFilter" class="form-label fw-bold">Filter by Topic:</label>
+                    <select name="topic_id" id="topicFilter" class="form-select"
+                        onchange="document.getElementById('filterSortForm').submit();">
+                        <option value="">All Topics</option>
+                        {% for topic in topics %}
+                        <option value="{{ topic.topic_id }}" {% if topic.topic_id|string == selected_topic %}selected{% endif %}>
+                            {{ topic.topic_name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+            </div>
+            <div class="col-md-4">
+                <label for="sortFilter" class="form-label fw-bold">Sort by:</label>
+                <select name="sort_by" id="sortFilter" class="form-select"
+                    onchange="document.getElementById('filterSortForm').submit();">
+                    <option value="due_date" {% if sort_by=='due_date' %}selected{% endif %}>Due Date</option>
+                    <option value="title" {% if sort_by=='title' %}selected{% endif %}>Title</option>
+                    <option value="topic_name" {% if sort_by=='topic_name' %}selected{% endif %}>Topic</option>
+                </select>
+                </form>
+            </div>
+        </div>
+
+        <!-- Assignments Table -->
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Title</th>
+                        <th>Topic</th>
+                        <th>Due Date</th>
+                        <th>Status</th>
+                        <th>Marks</th>
+                        <!-- <th>Grade</th> -->
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for course, assignments in courses.items() %}
+                        {% for assignment in assignments %}
+                        <tr>
+                            <td class="fw-semibold">{{ assignment.title }}</td>
+                            <td>{{ assignment.topic_name }}</td>
+                            <td>
+                                {{ assignment.due_date }}
+                                {% if assignment.is_overdue %}
+                                    <span class="badge bg-danger ms-2">Overdue</span>
+                                {% elif assignment.is_due_soon %}
+                                    <span class="badge bg-warning text-dark ms-2">Due Soon</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% set status = assignment.submission_status|default('PENDING', true) %}
+                                {% if status == 'SUBMITTED' %}
+                                    <span class="badge bg-primary">Submitted</span>
+                                {% elif status == 'GRADED' %}
+                                    <span class="badge bg-primary">Graded</span>
+                                {% else %}
+                                    <span class="badge bg-warning">Pending</span>
+                                {% endif %}
+                            </td>
+                            <!-- Marks Column -->
+                            <td>
+                                {% if assignment.submission_status == 'GRADED' %}
+                                    <span class="fw-bold text-success">{{ assignment.marks_obtained or 0 }} / {{ assignment.total_marks or 100 }}</span>
+                                {% else %}
+                                    <span class="text-muted">--</span>
+                                {% endif %}
+                            </td>
+                            <!-- Grade Column -->
+                            <!-- <td>
+                                {% if assignment.submission_status == 'GRADED' %}
+                                    <span class="badge bg-success">{{ assignment.grade or '--' }}</span>
+                                {% else %}
+                                    <span class="text-muted">Not graded yet</span>
+                                {% endif %}
+                            </td> -->
+                            <td>
+                                {% set status = assignment.submission_status|default('PENDING', true) %}
+                                {% if status in ['PENDING', None] %}
+                                    <a href="{{ url_for('student.submit_assignment', assignment_id=assignment.assignment_id) }}"
+                                       class="btn btn-sm btn-success">Submit</a>
+                                {% elif status == 'SUBMITTED' %}
+                                    <a href="{{ url_for('student.submit_assignment', assignment_id=assignment.assignment_id) }}"
+                                       class="btn btn-sm btn-warning">Update</a>
+                                {% elif status == 'GRADED' %}
+                                    <a href="{{ url_for('student.view_feedback', assignment_id=assignment.assignment_id) }}"
+                                       class="btn btn-sm btn-info"> Feedback</a>
+                                {% endif %}
+                                <a href="{{ url_for('student.assignment_details', assignment_id=assignment.assignment_id) }}"
+                                   class="btn btn-sm btn-outline-dark ms-1">Details</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted">No assignments found.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Initialize Bootstrap tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+</script>
+{% endblock %}

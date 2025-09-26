@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">My Courses</h2>
+
+    {% if courses %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for course in courses %}
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">{{ course.course_name }}</h5>
+                    <!-- <p class="card-text">
+                        {% set words = course.description.split() %}
+                        {% if words|length > 50 %}
+                        {{ words[:50]|join(' ') }}...
+                        {% else %}
+                        {{ course.description }}
+                        {% endif %}
+                    </p> -->
+                    {% if course.batches %}
+                    <hr>
+                    <h6>Batches:</h6>
+                    <ul class="list-group list-group-flush">
+                        {% for batch in course.batches %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ batch.batch_name }}
+                            <a href="{{ url_for('trainer.course_topics', course_id=course.course_id, batch_id=batch.batch_id) }}"
+                               class="btn btn-outline-primary btn-sm">Topics & Subtopics</a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="text-muted">No batches assigned.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        You have not been assigned any courses yet.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 col-md-8 offset-md-2">
+        <div class="card shadow-sm my-4">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">{{ submission and "Resubmit Assignment" or "Submit Assignment" }}</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('student.submit_assignment', assignment_id=assignment.assignment_id) }}" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="assignmentFile" class="form-label">Upload File</label>
+                        <input type="file" class="form-control" id="assignmentFile" name="assignment_file" required>
+                        <small class="form-text text-muted">Allowed formats: PDF, DOCX, TXT, etc.</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="comments" class="form-label">Comments (optional)</label>
+                        <textarea class="form-control" id="comments" name="comments" rows="3">{{ submission.comments if submission else "" }}</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-success">{{ submission and "Resubmit" or "Submit" }}</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

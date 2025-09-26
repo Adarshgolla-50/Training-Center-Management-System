@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+    .course-card {
+        border-radius: 1rem;
+        padding: 1rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1.5rem;
+        transition: transform 0.2s, box-shadow 0.2s;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .course-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-header {
+        font-weight: 700;
+        font-size: 1.2rem;
+        margin-bottom: 0.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .course-info {
+        position: relative; /* needed for absolute inline-message */
+    }
+
+    .course-info p {
+        margin: 0.2rem 0;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        letter-spacing: 0.5px;
+        padding: 0.5rem;
+        height: 150px;
+        overflow: hidden;
+    }
+
+    .inline-message {       
+        font-size: 0.85rem;
+        font-weight: 600;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .inline-message.show {
+        opacity: 1;
+    }
+
+    .form-check-input:checked {
+        background-color: #28a745 !important;
+        border-color: #28a745 !important;
+    }
+
+    .form-check-input:not(:checked) {
+        background-color: #dc3545 !important;
+        border-color: #dc3545 !important;
+    }
+
+    .active-label.text-success {
+        color: #28a745;
+        font-weight: 600;
+    }
+
+    .active-label.text-danger {
+        color: #dc3545;
+        font-weight: 600;
+    }
+
+    #searchInput {
+        margin-bottom: 1.5rem;
+    }
+
+    .courses-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+</style>
+
+<!-- Top search + Add Course -->
+<div class="row mt-4 mb-3">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <form method="get" class="w-50">
+            <input type="text" id="searchInput" name="search" class="form-control" placeholder="Search by course name..." value="{{ search }}">
+        </form>
+        <a href="{{ url_for('super_admin.add_course') }}" class="btn btn-primary">Add New Course</a>
+    </div>
+</div>
+
+<!-- Courses Grid -->
+<div class="courses-grid">
+    {% if courses %}
+        {% for course in courses %}
+            <div class="course-card" id="courseCard{{ course.course_id }}">
+                <div class="card-header">
+                    <span>{{ course.course_name }}</span>
+                    <div class="form-check form-switch d-flex align-items-center">
+                        <input class="form-check-input course-status-toggle" type="checkbox"
+                               data-course-id="{{ course.course_id }}" {% if course.is_active %}checked{% endif %}>
+                        <span class="ms-2 course-status-label {{ 'text-success' if course.is_active else 'text-danger' }}">
+                            {{ 'Active' if course.is_active else 'Inactive' }}
+                        </span>
+                    </div>
+                </div>
+                <div class="course-info">
+                    <p class="description"><strong>Description:</strong>
+                        {% if course.description %}
+                            {% set words = course.description.split() %}
+                            {% if words|length > 50 %}
+                                {{ words[:50]|join(' ') }}...
+                            {% else %}
+                                {{ course.description }}
+                            {% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="actions">
+                    <button type="button" class="btn btn-sm btn-info view-course-btn" data-bs-toggle="modal"
+                            data-bs-target="#viewCourseModal" data-course='{{ course|tojson }}'>View</button>
+                    <a href="{{ url_for('super_admin.edit_course', course_id=course.course_id) }}"
+                       class="btn btn-sm btn-warning">Edit</a>
+                    <a href="{{ url_for('super_admin.delete_course', course_id=course.course_id) }}"
+                       class="btn btn-sm btn-danger"
+                       onclick="return confirm('Are you sure you want to delete this course?')">Delete</a>
+                </div>
+                <div class="inline-message text-success" id="statusMsg{{ course.course_id }}"></div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="text-center py-4" id="noCoursesRow">
+            <h5>No courses found.</h5>
+        </div>
+    {% endif %}
+</div>
+
+<!-- View Course Modal -->
+<div class="modal fade" id="viewCourseModal" tabindex="-1" aria-labelledby="viewCourseModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewCourseModalLabel">Course Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Course Name:</strong> <span id="modalCourseName"></span></p>
+                <p><strong>Status:</strong> <span id="modalCourseStatus" class="badge"></span></p>
+                <p><strong>Description:</strong></p>
+                <p id="modalCourseDescription"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // View modal population
+    document.querySelectorAll('.view-course-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const course = JSON.parse(this.getAttribute('data-course'));
+            document.getElementById('modalCourseName').textContent = course.course_name || '-';
+            const statusSpan = document.getElementById('modalCourseStatus');
+            statusSpan.textContent = course.is_active ? 'Active' : 'Inactive';
+            statusSpan.className = 'badge ' + (course.is_active ? 'bg-success' : 'bg-danger');
+            document.getElementById('modalCourseDescription').textContent = course.description || '-';
+        });
+    });
+
+    // Toggle Active/Inactive Status for Courses with inline messages
+    document.querySelectorAll('.course-status-toggle').forEach(toggle => {
+        toggle.addEventListener('change', function () {
+            const courseId = this.dataset.courseId;
+            const isActive = this.checked ? 1 : 0;
+            const statusLabel = this.closest('.form-check').querySelector('.course-status-label');
+            const msg = document.getElementById(`statusMsg${courseId}`);
+
+            fetch(`/super_admin/courses/toggle_status/${courseId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ is_active: isActive })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    const labelText = data.is_active ? "Active" : "Inactive";
+                    statusLabel.textContent = labelText;
+                    statusLabel.classList.toggle("text-success", data.is_active);
+                    statusLabel.classList.toggle("text-danger", !data.is_active);
+
+                    // Show inline success message only for this card
+                    msg.textContent = "Status updated successfully!";
+                    msg.classList.add("show");
+                    setTimeout(() => { 
+                        msg.classList.remove("show"); 
+                        msg.textContent = ""; 
+                    }, 3000);
+                } else {
+                    msg.textContent = data.message || "Failed to update status";
+                    msg.classList.add("show");
+                    this.checked = !isActive; // revert
+                    setTimeout(() => { 
+                        msg.classList.remove("show"); 
+                        msg.textContent = ""; 
+                    }, 3000);
+                }
+            })
+            .catch(() => {
+                msg.textContent = "Error updating status";
+                msg.classList.add("show");
+                this.checked = !isActive; // revert
+                setTimeout(() => { 
+                    msg.classList.remove("show"); 
+                    msg.textContent = ""; 
+                }, 3000);
+            });
+        });
+    });
+</script>
+
+{% endblock %}

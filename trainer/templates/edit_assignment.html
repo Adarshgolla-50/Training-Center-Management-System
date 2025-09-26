@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Edit Assignment: "{{ assignment.title }}"</h2>
+
+    <form action="{{ url_for('trainer.edit_assignment', assignment_id=assignment.assignment_id) }}" method="POST">
+        <div class="mb-3">
+            <label class="form-label">Title</label>
+            <input type="text" name="title" class="form-control" value="{{ assignment.title }}" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Description</label>
+            <textarea name="description" class="form-control" rows="3">{{ assignment.description }}</textarea>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Due Date</label>
+            <input type="date" name="due_date" class="form-control" value="{{ assignment.due_date }}" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Total Marks</label>
+            <input type="number" name="total_marks" class="form-control" value="{{ assignment.total_marks }}" min="1">
+        </div>
+        <button type="submit" class="btn btn-success">Update</button>
+        <a href="{{ url_for('trainer.view_assignments', subtopic_id=assignment.subtopic_id, course_id=assignment.course_id, batch_id=assignment.batch_id) }}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 col-md-8 offset-md-2">
+        <div class="card shadow-sm my-4">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Assignment Feedback: {{ assignment.title }}</h4>
+            </div>
+            <div class="card-body">
+                {% if submission and (submission.feedback or submission.marks_obtained or submission.feedback_file_path) %}
+                    {% if submission.feedback %}
+                        <h5>Feedback:</h5>
+                        <p>{{ submission.feedback }}</p>
+                    {% endif %}
+
+                    {% if submission.feedback_file_path %}
+                        <h5>Feedback File:</h5>
+                        <a href="{{ url_for('static', filename='uploads/feedback/' + submission.feedback_file_path) }}" 
+                           class="btn btn-outline-secondary btn-sm" target="_blank">
+                            Download Feedback File
+                        </a>
+                    {% endif %}
+
+                    <p class="mt-2"><strong>Graded At:</strong> {{ submission.graded_at }}</p>
+                    {% if submission.marks_obtained %}
+                        <p><strong>Marks Obtained:</strong> {{ submission.marks_obtained }}</p>
+                    {% endif %}
+                {% else %}
+                    <p class="text-muted">No feedback available yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+  <!-- Breadcrumb for better navigation -->
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{{ url_for('admin.courses') }}">Courses</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ course.course_name }}</li>
+    </ol>
+  </nav>
+
+  <h2 class="mb-4">Batches for {{ course.course_name }}</h2>
+
+  <div class="row">
+    {% if batches %}
+      {% for batch in batches %}
+        <div class="col-md-6 col-lg-4 mb-4 d-flex">
+          <div class="card h-100 shadow-sm border-0 rounded-3 flex-fill">
+            <div class="card-body d-flex flex-column">
+
+              <!-- Batch Name -->
+              <h5 class="card-title text-primary">{{ batch.batch_name }}</h5>
+
+              <!-- Info -->
+              <p><strong>Duration:</strong>
+                {{ batch.start_date.strftime('%d-%m-%Y') }} → {{ batch.end_date.strftime('%d-%m-%Y') }}
+              </p>
+              <p><strong>Status:</strong>
+                {{ "Active" if batch.is_active else "Inactive" }}
+              </p>
+              <p><strong>Max Students:</strong> {{ batch.max_students }}</p>
+
+              <!-- Optional description -->
+              {% if batch.description %}
+                <p class="text-muted small">{{ batch.description }}</p>
+              {% endif %}
+
+              <!-- Enroll Student CTA -->
+              <div class="mt-auto">
+                <a href="{{ url_for('admin.show_add_student', batch_id=batch.batch_id) }}"
+                   class="btn btn-success w-100">Enroll Student</a>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="text-center py-4">
+        <h5>No batches found for this course.</h5>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

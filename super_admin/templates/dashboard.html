@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* Card hover effect */
+    .card {
+        transition: all 0.3s ease-in-out;
+        border-radius: 12px;
+    }
+
+    .card:hover {
+        transform: translateY(-6px) scale(1.02);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15) !important;
+        cursor: pointer;
+    }
+
+    /* Icon hover highlight */
+    .card i {
+        transition: transform 0.3s ease, color 0.3s ease;
+    }
+
+    .card:hover i {
+        transform: scale(1.2);
+        color: #007bff !important;
+    }
+
+    /* Chart cards same height fix */
+    .card.h-100 {
+        min-height: 320px;
+    }
+</style>
+<div class="row">
+    <div class="col-md-12 grid-margin ">
+        <div class="row align-items-center">
+            <div class="col-12 col-xl-8 mb-4 mb-xl-0">
+                <h3 class="font-weight-bold">Welcome, {{ session.get('user_name') | capitalize }}!</h3>
+                <h6 class="font-weight-normal mb-0">All systems are running smoothly!</h6>
+            </div>
+        </div>
+        <!-- Quick Actions: Full width, below welcome -->
+        <!-- <div class="row mb-4 mt-3">
+            <div class="col-12">
+                <section class="p-3 rounded shadow-sm bg-light d-flex flex-column flex-md-row align-items-center justify-content-between">
+                    <div class="mb-2 mb-md-0">
+                        <span class="font-weight-bold text-primary" style="font-size:1.1rem;">
+                            Quick Actions
+                        </span>
+                        <span class="text-muted d-block d-md-inline" style="font-size:0.95rem;">
+                            &nbsp;|&nbsp;Manage your platform efficiently using these shortcuts:
+                        </span>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="{{ url_for('super_admin.add_course') }}" class="btn btn-primary btn-sm">Add Course</a>
+                        <a href="{{ url_for('super_admin.add_admin') }}" class="btn btn-success btn-sm">Add Admin</a>
+                        <a href="{{ url_for('super_admin.add_trainer') }}" class="btn btn-info btn-sm">Add Trainer</a>
+                        <a href="{{ url_for('super_admin.courses') }}" class="btn btn-warning btn-sm">View Courses</a>
+                        <a href="{{ url_for('super_admin.admins') }}" class="btn btn-secondary btn-sm">View Admins</a>
+                        <a href="{{ url_for('super_admin.trainers') }}" class="btn btn-dark btn-sm">View Trainers</a>
+                        <a href="{{ url_for('super_admin.assign_courses_page') }}" class="btn btn-outline-primary btn-sm">Course Assignments</a>
+                    </div>
+                </section>
+            </div>
+        </div> -->
+    </div>
+</div>
+
+<!-- Stats Cards: 3 per row -->
+<div class="row">
+    <div class="col-md-4 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <p class="card-title">Total Admins</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h2>{{ total_admins }}</h2>
+                    <i class="mdi mdi-account-group-outline icon-md text-primary"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <p class="card-title">Total Trainers</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3>{{ total_trainers }}</h3>
+                    <i class="mdi mdi-account-card-details icon-md text-primary"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <p class="card-title">Total Courses</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3>{{ total_courses }}</h3>
+                    <i class="mdi mdi-book-open-page-variant icon-md text-primary"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-4 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <p class="card-title">Active Courses</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3>{{ active_courses }}</h3>
+                    <i class="mdi mdi-school icon-md text-primary"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <p class="card-title">Total Students</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3>{{ total_students }}</h3>
+                    <i class="mdi mdi-account-multiple icon-md text-success"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <p class="card-title">Total Batches</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3>{{ total_batches }}</h3>
+                    <i class="mdi mdi-calendar-multiple icon-md text-info"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row mt-4">
+    <!-- Courses Status Chart -->
+    <div class="col-lg-4 grid-margin stretch-card">
+        <div class="card h-100">
+            <div class="card-body" style="height:320px;">
+                <h4 class="card-title">Courses Status</h4>
+                <canvas id="courseStatusChart" style="max-height:200px;"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enrollments per Course Chart -->
+    <div class="col-lg-4 grid-margin stretch-card">
+        <div class="card h-100">
+            <div class="card-body" style="height:320px;">
+                <h4 class="card-title">Enrollments per Course</h4>
+                <canvas id="enrollmentsChart" style="max-height:200px;"></canvas>
+            </div>
+        </div>
+    </div>    
+
+    <!-- User Role Distribution Pie Chart -->
+    <div class="col-lg-4 grid-margin stretch-card">
+        <div class="card h-100">
+            <div class="card-body" style="height:320px;">
+                <h4 class="card-title">User Role Distribution</h4>
+                <canvas id="userRoleChart" style="max-height:200px;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Additional Charts -->
+<!-- <div class="row mt-4">
+    
+    <div class="col-lg-6 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Monthly Enrollments Trend (Last 6 Months)</h4>
+                <canvas id="enrollmentsTrendChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    
+    <div class="col-lg-6 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Leave Applications Trend (Last 6 Months)</h4>
+                <canvas id="leaveTrendChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div> -->
+
+<!-- Recent Activities -->
+<!-- <div class="row mt-4">
+    <div class="col-lg-12 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Recent Activities</h4>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>User</th>
+                                <th>Action</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for activity in recent_activities %}
+                            <tr>
+                                <td>{{ activity.timestamp }}</td>
+                                <td>{{ activity.user }}</td>
+                                <td>{{ activity.action }}</td>
+                                <td>{{ activity.details }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center">No recent activity found.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> -->
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Courses Status Chart
+    new Chart(document.getElementById('courseStatusChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Active', 'Inactive'],
+            datasets: [{ data: [Number('{{ active_courses_count }}'), Number('{{ inactive_courses_count }}')], backgroundColor: ['#4CAF50','#F44336'] }]
+        },
+        options: { responsive:true, plugins:{ legend:{ position:'bottom' } } }
+    });
+
+    // Enrollments per Course
+    new Chart(document.getElementById('enrollmentsChart'), {
+        type: 'bar',
+        data: {
+            labels: {{ course_labels|tojson }},
+            datasets: [{ label: 'Enrollments', data: {{ course_enrollments|tojson }}, backgroundColor: '#42A5F5' }]
+        },
+        options: { responsive:true, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, stepSize:1 } } }
+    });
+
+    // User Role Distribution
+    new Chart(document.getElementById('userRoleChart'), {
+        type: 'pie',
+        data: {
+            labels: {{ user_role_labels|tojson }},
+            datasets: [{
+                data: {{ user_role_counts|tojson }},
+                backgroundColor: ['#1976D2', '#388E3C', '#FBC02D', '#D32F2F', '#7B1FA2']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { position: 'bottom' } }
+        }
+    });
+
+    // Monthly Enrollments Trend
+    new Chart(document.getElementById('enrollmentsTrendChart'), {
+        type: 'line',
+        data:{
+            labels: {{ monthly_labels|tojson }},
+            datasets:[{ label:'Enrollments', data: {{ monthly_counts|tojson }}, fill:true, borderColor:'#FF9800', backgroundColor:'rgba(255,152,0,0.2)', tension:0.3 }]
+        },
+        options:{ responsive:true, plugins:{ legend:{ display:true, position:'bottom' } }, scales:{ y:{ beginAtZero:true, stepSize:1 } } }
+    });
+
+    // Leave Applications Trend
+    new Chart(document.getElementById('leaveTrendChart'), {
+        type: 'line',
+        data:{
+            labels: {{ leave_months|tojson }},
+            datasets:[
+                { label:'Approved', data: {{ leave_approved|tojson }}, borderColor:'#4CAF50', fill:false },
+                { label:'Rejected', data: {{ leave_rejected|tojson }}, borderColor:'#F44336', fill:false }
+            ]
+        },
+        options:{ responsive:true, plugins:{ legend:{ position:'bottom' } }, scales:{ y:{ beginAtZero:true, stepSize:1 } } }
+    });
+</script>
+{% endblock %}

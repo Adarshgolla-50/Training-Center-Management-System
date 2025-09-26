@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+
+        <!-- Assignment Details Card -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Assignment Details</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Title:</strong> {{ assignment.title }}</p>
+                    <p><strong>Course:</strong> {{ assignment.course_name }}</p>
+                    <p><strong>Batch:</strong> {{ assignment.batch_name }}</p>
+                    <p><strong>Topic:</strong> {{ assignment.topic_name }}</p>
+                    <p><strong>Due Date:</strong> {{ assignment.due_date }}</p>
+
+                    <div class="mb-3">
+                        <h6>Description:</h6>
+                        <p>{{ assignment.description }}</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <h6>Attachment:</h6>
+                        {% if assignment.attachment %}
+                            <a href="{{ url_for('static', filename='uploads/assignments/' + assignment.attachment) }}" 
+                               class="btn btn-outline-primary btn-sm" target="_blank">
+                                Download Assignment
+                            </a>
+                        {% else %}
+                            <span class="text-muted">No attachments available.</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

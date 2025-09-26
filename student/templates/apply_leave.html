@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h3 class="mb-4">Apply for Leave</h3>
+
+    <form method="POST" enctype="multipart/form-data" class="card p-4 shadow-sm">
+        <div class="mb-3">
+            <label for="type_id" class="form-label">Leave Type</label>
+            <select name="type_id" id="type_id" class="form-select" required>
+    <option value="">-- Select Leave Type --</option>
+    {% for lt in leave_types %}
+    <option value="{{ lt.type_id }}" {% if lt.type_name == 'Personal Leave' and lt.remaining <= 0 %}disabled{% endif %}>
+        {{ lt.type_name }}
+        {% if lt.type_name == 'Personal Leave' %}
+            (Remaining: {{ lt.remaining }})
+        {% endif %}
+    </option>
+    {% endfor %}
+</select>
+        </div>
+
+        <div class="mb-3">
+            <label for="start_date" class="form-label">Start Date</label>
+            <input type="date" class="form-control" name="start_date" id="start_date" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="end_date" class="form-label">End Date</label>
+            <input type="date" class="form-control" name="end_date" id="end_date" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="reason" class="form-label">Reason</label>
+            <textarea name="reason" id="reason" class="form-control" rows="3" placeholder="Explain your reason..."
+                required></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label for="supporting_document" class="form-label">Supporting Document (Optional)</label>
+            <input type="file" class="form-control" name="supporting_document" id="supporting_document"
+                accept=".pdf,.jpg,.jpeg,.png">
+            <small class="text-muted">Accepted: PDF, JPG, PNG</small>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Submit Leave Request</button>
+        <a href="{{ url_for('student.my_leaves') }}" class="btn btn-secondary">My Leaves</a>
+    </form>
+</div>
+{% endblock %}

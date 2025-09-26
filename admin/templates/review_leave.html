@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h3>Review Leave Application</h3>
+        <form method="POST">
+            <div class="mb-3">
+                <label class="form-label">Student</label>
+                <input type="text" class="form-control" value="{{ leave.student_name }}" readonly>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Leave Type</label>
+                <input type="text" class="form-control" value="{{ leave.type_name }}" readonly>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Start Date</label>
+                <input type="text" class="form-control" value="{{ leave.start_date }}" readonly>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">End Date</label>
+                <input type="text" class="form-control" value="{{ leave.end_date }}" readonly>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Reason</label>
+                <textarea class="form-control" rows="3" readonly>{{ leave.reason }}</textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Admin Comments</label>
+                <textarea name="admin_comments" class="form-control" rows="2" placeholder="Optional comments"></textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Action</label>
+                <select name="action" class="form-select" required>
+                    <option value="">-- Select --</option>
+                    <option value="approved">Approve</option>
+                    <option value="rejected">Reject</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+            <a href="{{ url_for('admin.leave_dashboard') }}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

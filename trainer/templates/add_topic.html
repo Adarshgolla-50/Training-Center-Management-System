@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Add New Topic</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="course_id" class="form-label">Course</label>
+                        <select name="course_id" id="course_id" class="form-select" required>
+                            <option value="">-- Select Course --</option>
+                            {% for course in courses %}
+                                <option value="{{ course.course_id }}">{{ course.course_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="topic_name" class="form-label">Topic Name</label>
+                        <input type="text" name="topic_name" class="form-control" id="topic_name"
+                               required placeholder="Enter topic name">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description"
+                                  placeholder="Description" rows="6" style="min-height:150px;"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="sequence_order" class="form-label">Sequence Order</label>
+                        <input type="number" name="sequence_order" class="form-control" id="sequence_order"
+                               value="1" min="1" placeholder="Enter sequence order">
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('trainer.topics') }}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-success">Add Topic</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

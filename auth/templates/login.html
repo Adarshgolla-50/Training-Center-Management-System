@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+
+    <title>Login | Training Center</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tcms.css') }}">
+    <style>
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+
+        .login-card {
+            margin-top: 90px;
+            /* Adjust if your navbar is taller/shorter */
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar Start -->
+    <nav style="width:100%; background:#fff; box-shadow:0 2px 8px #eee; display:flex; align-items:center; justify-content:space-between; padding: 1.5rem 2rem; font-family: 'Roboto', sans-serif;">
+        <div style="font-size:1.5rem; font-weight:700; color:#007bff;">
+            TCMS
+        </div>
+        <div>
+            <a href="/auth/login" style="text-decoration:none; background:#007bff; color:#fff; padding:0.5rem 1.2rem; border-radius:4px; font-weight:500; transition:background 0.2s;">Login</a>
+        </div>
+    </nav>
+    <!-- Navbar End -->
+
+    <div class="login-card" style="margin-top:90px;">
+        <div class="brand-logo">
+            <h1>Training Center</h1>
+            <p>Welcome back! Please login to continue</p>
+        </div>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" class="form-control" placeholder="Enter your email"
+                    required>
+            </div>
+            <div class="form-group" style="position: relative;">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" class="form-control"
+                    placeholder="Enter your password" required>
+                <span id="togglePassword" style="position:absolute; right:10px; top:38px; cursor:pointer;">
+                    <!-- Simple SVG eye icon -->
+                    <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" height="20" width="20" fill="#888"><path d="M10 15q-2.5 0-4.688-1.438Q3.125 12.125 2 10q1.125-2.125 3.312-3.562Q7.5 5 10 5q2.5 0 4.688 1.438Q16.875 7.875 18 10q-1.125 2.125-3.312 3.562Q12.5 15 10 15Zm0-1.5q1.875 0 3.438-1.012Q14.875 11.475 16 10q-1.125-1.475-2.562-2.488Q11.875 6.5 10 6.5q-1.875 0-3.438 1.012Q5.125 8.525 4 10q1.125 1.475 2.562 2.488Q8.125 13.5 10 13.5Zm0-1.5q-.825 0-1.413-.588Q8 10.825 8 10q0-.825.587-1.413Q9.175 8 10 8q.825 0 1.413.587Q12 9.175 12 10q0 .825-.587 1.412Q10.825 12 10 12Zm0-1.5q.425 0 .713-.288Q11 9.925 11 9.5q0-.425-.287-.712Q10.425 8.5 10 8.5q-.425 0-.713.288Q9 9.075 9 9.5q0 .425.287.712.288.288.713.288Z"/></svg>
+                </span>
+            </div>
+            <button type="submit" class="btn-login">Login</button>
+            <a href="{{ url_for('auth.forgot_password') }}" class="auth-link">Forgot password?</a>
+            <div id="message"></div>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const email = this.email.value.trim();
+            const password = this.password.value.trim();
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = '';
+            messageDiv.className = '';
+
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailPattern.test(email)) {
+                messageDiv.textContent = 'Please enter a valid email.';
+                messageDiv.className = 'text-danger';
+                return;
+            }
+            if (password.length < 6) {
+                messageDiv.textContent = 'Password must be at least 6 characters.';
+                messageDiv.className = 'text-danger';
+                return;
+            }
+
+            fetch('/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    messageDiv.textContent = data.message;
+                    messageDiv.className = data.status === 'success' ? 'text-success' : 'text-danger';
+
+                    if (data.status === 'success') {
+                        let redirectUrl = '/dashboard';
+                        if (data.role === 'super_admin') redirectUrl = '/super_admin/dashboard';
+                        else if (data.role === 'admin') redirectUrl = '/admin/dashboard';
+                        else if (data.role === 'trainer') redirectUrl = '/trainer/dashboard';
+                        else if (data.role === 'student') redirectUrl = '/student/dashboard';
+                        setTimeout(() => window.location.href = redirectUrl, 200);
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    messageDiv.textContent = 'An error occurred. Try again.';
+                    messageDiv.className = 'text-danger';
+                });
+        });
+
+        // Password eye toggle
+        document.getElementById('togglePassword').addEventListener('click', function () {
+            const passwordInput = document.getElementById('password');
+            const eyeIcon = document.getElementById('eyeIcon');
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.setAttribute('fill', '#007bff'); // Change color when visible
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.setAttribute('fill', '#888');
+            }
+        });
+    </script>
+    
+</body>
+
+</html>
